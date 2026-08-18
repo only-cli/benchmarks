@@ -44,7 +44,9 @@ const PLAYWRIGHT_MCP = JSON.stringify({
 const CONDITIONS = [
   {
     name: 'oc',
-    usage: 'the command `oc open <url>` in Bash (and `oc raw <url>` when you need the full page text)',
+    usage: 'the `oc` commands in Bash: `oc open <url>`, `oc do <n>` to follow a numbered link, '
+      + '`oc next` for the next screenful of the page already open, `oc read <n>` for one region '
+      + 'in full, and `oc raw <url>` when you need the whole page text',
     skill: 'browse-oc',
     allowed: ['Bash(oc:*)'],
   },
@@ -75,6 +77,12 @@ const CONDITIONS = [
     mcp: true,
   },
 ];
+
+// Sessions run back to back, which on a task like a GitHub search means five
+// tools hitting the same endpoint from one IP inside a minute. GAP_MS paces
+// them so a rate limit does not land on the benchmark rather than the tool.
+const GAP_MS = Number(process.env.GAP_MS ?? 0);
+const pause = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 
 const skillBody = (name) =>
   readFileSync(new URL(`./.claude/skills/${name}/SKILL.md`, import.meta.url), 'utf8')
@@ -134,11 +142,18 @@ function parseCodex(stdout) {
 // --report-only re-renders the tables from the last saved JSON, no sessions
 // spent, for reformatting or inspecting a finished run.
 const REPORT_ONLY = process.argv.includes('--report-only');
+// --only=id,id reruns just those tasks and merges them into the saved run,
+// for when a site rate-limits the machine mid-benchmark and poisons a task
+// for every tool at once. Rerunning the whole suite to fix one task would
+// spend twenty-odd sessions re-measuring rows that were already clean.
+const ONLY = (process.argv.find((a) => a.startsWith('--only='))?.slice('--only='.length) ?? '')
+  .split(',').filter(Boolean);
 
-const results = REPORT_ONLY
-  ? JSON.parse(readFileSync(new URL(`./results/agent-latest${SUFFIX}.json`, import.meta.url), 'utf8'))
-  : [];
-for (const task of REPORT_ONLY ? [] : tasks) {
+const saved = () =>
+  JSON.parse(readFileSync(new URL(`./results/agent-latest${SUFFIX}.json`, import.meta.url), 'utf8'));
+const results = REPORT_ONLY ? saved() : ONLY.length ? saved().filter((r) => !ONLY.includes(r.task)) : [];
+const queue = REPORT_ONLY ? [] : ONLY.length ? tasks.filter((t) => ONLY.includes(t.id)) : tasks;
+for (const task of queue) {
   for (const cond of CONDITIONS) {
     const restriction =
       `You may read the web ONLY through ${cond.usage}. Do not use any other ` +
@@ -216,8 +231,14 @@ for (const task of REPORT_ONLY ? [] : tasks) {
     }
     results.push(row);
     console.error(`${task.id} / ${cond.name} done (${row.ok ? 'ok' : 'FAILED'}, ${Math.round(ms / 1000)}s)`);
+    if (GAP_MS) pause(GAP_MS);
   }
 }
+
+// Merged reruns arrive at the end of the array; put every row back in task
+// then tool order so the table reads the same however the run was assembled.
+const order = (r) => tasks.findIndex((t) => t.id === r.task) * 100 + CONDITIONS.findIndex((c) => c.name === r.tool);
+results.sort((a, b) => order(a) - order(b));
 
 const lines = [];
 const out = (l) => { lines.push(l); console.log(l); };
