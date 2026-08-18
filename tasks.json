@@ -1,6 +1,32 @@
 [
-  { "id": "simple-page", "url": "https://example.com", "goal": "read a small static page" },
-  { "id": "news-front", "url": "https://news.ycombinator.com", "goal": "scan a link-heavy front page" },
-  { "id": "discussion", "url": "https://old.reddit.com/r/linuxquestions/comments/xpznb1/best_terminal_web_browser/", "goal": "extract a comment thread" },
-  { "id": "search-results", "url": "https://html.duckduckgo.com/html/?q=terminal+web+browser", "goal": "scan search results" }
+  {
+    "id": "simple-page",
+    "url": "https://example.com",
+    "goal": "read a small static page"
+  },
+  {
+    "id": "news-front",
+    "url": "https://news.ycombinator.com",
+    "goal": "scan a link-heavy front page"
+  },
+  {
+    "id": "discussion",
+    "url": "https://old.reddit.com/r/linuxquestions/comments/xpznb1/best_terminal_web_browser/",
+    "goal": "extract a comment thread"
+  },
+  {
+    "id": "search-results",
+    "url": "https://html.duckduckgo.com/html/?q=terminal+web+browser",
+    "goal": "scan search results"
+  },
+  {
+    "id": "repo-search",
+    "url": "https://github.com/search?q=cli+for+ai+agents&type=repositories",
+    "goal": "scan GitHub repository search results"
+  },
+  {
+    "id": "company-page",
+    "url": "https://www.linkedin.com/company/anthropic",
+    "goal": "read a LinkedIn company page (guest view)"
+  }
 ]

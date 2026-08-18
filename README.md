@@ -37,15 +37,15 @@ Network benchmarks are honest but noisy: they hit live sites, so numbers vary ru
 
 ## Latest results
 
-only-cli 0.1.0, Node 24, run on 2026-08-18 against live sites. Full per-task rows are in [results/latest.md](results/latest.md).
+only-cli 0.2.0-beta.1 (installed from `@only-cli/oc@beta`), Node 24, run on 2026-08-18 against live sites. Full per-task rows are in [results/latest.md](results/latest.md).
 
 | adapter | model | success | total tokens | avg ms | avg fetch ms | total KB |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| oc-open | none | 4/4 | 1444 | 591 | 446 | 274 |
-| oc-raw | none | 4/4 | 15170 | 659 | 475 | 274 |
-| raw-fetch | none | 4/4 | 65372 | 247 | 247 | 256 |
+| oc-open | none | 6/6 | 1941 | 516 | 362 | 682 |
+| oc-raw | none | 6/6 | 23762 | 603 | 405 | 691 |
+| raw-fetch | none | 6/6 | 179771 | 472 | 472 | 703 |
 
-Roughly the same bytes come over the wire either way; the difference is what reaches the agent's context. On the heaviest task, a Reddit discussion thread, oc-open hands the agent 477 tokens where raw HTML is 52,899, a 111x reduction, for about 40ms of processing. The status column also caught the naive fetcher getting a DuckDuckGo challenge page (HTTP 202) on the search task while oc's Chrome-impersonated client got real results.
+This run adds the two sites the beta ships shortcuts for. GitHub repository search drops from 67,902 raw tokens to 441 with oc-open (154x), and a LinkedIn company page in guest view drops from 39,724 to 470 (84x). Across all six tasks oc-open hands the agent 93x fewer tokens than raw HTML at comparable wall time; the same bytes come over the wire either way, the difference is what reaches the agent's context. The heaviest single task remains the Reddit discussion thread: 52,935 raw tokens against 479.
 
 ## Tasks
 
