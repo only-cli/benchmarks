@@ -1,8 +1,12 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { ocOpen, ocRaw } from './adapters/oc.js';
 import { rawFetch } from './adapters/raw-fetch.js';
+import { jinaReader } from './adapters/jina-reader.js';
+import { lynxDump, lynxAvailable } from './adapters/lynx.js';
 
-const ADAPTERS = [ocOpen, ocRaw, rawFetch];
+const ADAPTERS = [ocOpen, ocRaw, rawFetch, jinaReader];
+if (await lynxAvailable()) ADAPTERS.push(lynxDump);
+else console.error('lynx not found, skipping lynx-dump (set LYNX_BIN or install lynx)');
 const tasks = JSON.parse(readFileSync(new URL('./tasks.json', import.meta.url), 'utf8'));
 
 const estimateTokens = (s) => Math.ceil(s.length / 4);
