@@ -12,14 +12,18 @@ for (const task of tasks) {
   for (const adapter of ADAPTERS) {
     const t0 = performance.now();
     try {
-      const { output, bytes } = await adapter.run(task.url);
+      const r = await adapter.run(task.url);
       results.push({
         task: task.id,
         adapter: adapter.name,
-        ok: output.trim().length > 0,
-        tokens: estimateTokens(output),
+        ok: r.output.trim().length > 0,
+        status: r.status,
+        tokens: estimateTokens(r.output),
         ms: Math.round(performance.now() - t0),
-        bytes,
+        fetchMs: r.fetchMs,
+        processMs: r.processMs,
+        bytes: r.bytes,
+        memMB: r.memMB,
       });
     } catch (err) {
       results.push({
@@ -34,21 +38,32 @@ for (const task of tasks) {
   }
 }
 
-console.log('| task | adapter | ok | tokens | ms | bytes |');
-console.log('| --- | --- | --- | ---: | ---: | ---: |');
+const cell = (v) => v ?? '';
+const kb = (bytes) => (bytes == null ? '' : Math.round(bytes / 1024));
+
+console.log('| task | adapter | ok | status | tokens | ms | fetch ms | process ms | KB | mem MB |');
+console.log('| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |');
 for (const r of results) {
-  console.log(`| ${r.task} | ${r.adapter} | ${r.ok ? 'yes' : 'NO'} | ${r.tokens ?? ''} | ${r.ms} | ${r.bytes ?? ''} |`);
+  console.log(
+    `| ${r.task} | ${r.adapter} | ${r.ok ? 'yes' : 'NO'} | ${cell(r.status)} | ${cell(r.tokens)} `
+    + `| ${r.ms} | ${cell(r.fetchMs)} | ${cell(r.processMs)} | ${kb(r.bytes)} | ${cell(r.memMB)} |`,
+  );
 }
 
 console.log('\n### Summary');
-console.log('| adapter | success | total tokens | avg ms |');
-console.log('| --- | ---: | ---: | ---: |');
+console.log('| adapter | success | total tokens | avg ms | avg fetch ms | total KB |');
+console.log('| --- | ---: | ---: | ---: | ---: | ---: |');
 for (const adapter of ADAPTERS) {
   const rows = results.filter((r) => r.adapter === adapter.name);
   const okRows = rows.filter((r) => r.ok);
   const totalTokens = okRows.reduce((sum, r) => sum + r.tokens, 0);
   const avgMs = Math.round(rows.reduce((sum, r) => sum + r.ms, 0) / rows.length);
-  console.log(`| ${adapter.name} | ${okRows.length}/${rows.length} | ${totalTokens} | ${avgMs} |`);
+  const fetched = okRows.filter((r) => r.fetchMs != null);
+  const avgFetchMs = fetched.length
+    ? Math.round(fetched.reduce((sum, r) => sum + r.fetchMs, 0) / fetched.length)
+    : '';
+  const totalKB = kb(okRows.reduce((sum, r) => sum + (r.bytes ?? 0), 0));
+  console.log(`| ${adapter.name} | ${okRows.length}/${rows.length} | ${totalTokens} | ${avgMs} | ${avgFetchMs} | ${totalKB} |`);
 }
 
 mkdirSync(new URL('./results/', import.meta.url), { recursive: true });

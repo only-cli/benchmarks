@@ -4,11 +4,15 @@ Reproducible comparisons of [oc](https://github.com/only-cli/oc) against other w
 
 ## Metrics
 
-Three axes, reported per task and summarized per adapter:
+The benchmark reports the same metrics oc shows agents under `--verbose`, with token usage added on top:
 
 - **Token usage**: estimated tokens of the text the agent must ingest (chars / 4, same estimator oc uses)
-- **Speed**: wall clock milliseconds, fetch through final output
-- **Performance**: success rate (did the method return usable page content) and transferred payload size in bytes
+- **Speed**: wall clock milliseconds end to end, plus the fetch and process split where the adapter reports it
+- **HTTP status**: what the site actually answered, so a block or a challenge page shows up as itself
+- **Resources**: bytes transferred over the network and memory used, where the adapter reports them
+- **Success rate**: did the method return usable page content at all
+
+The oc adapters run with `-v` and read oc's own metrics line from stderr, so stdout, the text an agent would read, stays exactly what gets token-counted.
 
 ## Methods compared
 
@@ -18,7 +22,7 @@ Three axes, reported per task and summarized per adapter:
 | `oc-raw` | oc whole-page markdown |
 | `raw-fetch` | naive agent behavior: fetch the URL, read the raw HTML |
 
-Planned: headless browser with screenshots (Playwright), accessibility-tree dumps, opencli adapters, browser-use. PRs adding an adapter are welcome; an adapter is one file in `adapters/` exporting `run(url)` and returning `{ output, bytes }`.
+Planned: headless browser with screenshots (Playwright), accessibility-tree dumps, opencli adapters, browser-use. PRs adding an adapter are welcome; an adapter is one file in `adapters/` exporting `run(url)` and returning `{ output, bytes }`, plus `status`, `fetchMs`, `processMs`, and `memMB` when the method can report them.
 
 ## Run it
 
