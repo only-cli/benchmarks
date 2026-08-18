@@ -4,7 +4,7 @@ import { promisify } from 'node:util';
 const exec = promisify(execFile);
 
 // Default to a sibling checkout so the benchmark runs against work in
-// progress; OC_BIN overrides (for example OC_BIN="npx only-cli").
+// progress; OC_BIN overrides (for example OC_BIN="npx @only-cli/oc").
 const OC = process.env.OC_BIN ?? 'node ../only-cli/src/cli.js';
 const [cmd, ...baseArgs] = OC.split(' ');
 
