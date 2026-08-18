@@ -1,0 +1,17 @@
+[
+  {
+    "id": "hn-top",
+    "url": "https://news.ycombinator.com",
+    "goal": "What is the title of the #1 story on Hacker News right now?"
+  },
+  {
+    "id": "gh-search",
+    "url": "https://github.com/search?q=terminal+file+manager&type=repositories",
+    "goal": "Which repository is the first result of this GitHub search, and roughly how many stars does it have?"
+  },
+  {
+    "id": "reddit-thread",
+    "url": "https://old.reddit.com/r/linuxquestions/comments/xpznb1/best_terminal_web_browser/",
+    "goal": "Which terminal web browser do commenters in this thread recommend most?"
+  }
+]

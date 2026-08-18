@@ -3,10 +3,21 @@ import { ocOpen, ocRaw } from './adapters/oc.js';
 import { rawFetch } from './adapters/raw-fetch.js';
 import { jinaReader } from './adapters/jina-reader.js';
 import { lynxDump, lynxAvailable } from './adapters/lynx.js';
+import { playwrightMcp, playwrightMcpAvailable, closePlaywrightMcp } from './adapters/playwright-mcp.js';
+import { browserUse, browserUseAvailable } from './adapters/browser-use.js';
+import { playwrightHtml, seleniumHtml, uvxAvailable } from './adapters/rendered-html.js';
+import { claudeComputerUse, openaiComputerUse } from './adapters/computer-use.js';
 
 const ADAPTERS = [ocOpen, ocRaw, rawFetch, jinaReader];
 if (await lynxAvailable()) ADAPTERS.push(lynxDump);
 else console.error('lynx not found, skipping lynx-dump (set LYNX_BIN or install lynx)');
+if (await playwrightMcpAvailable()) ADAPTERS.push(playwrightMcp);
+else console.error('Playwright MCP server failed to start, skipping playwright-mcp');
+if (await browserUseAvailable()) {
+  ADAPTERS.push(browserUse, playwrightHtml, seleniumHtml, claudeComputerUse, openaiComputerUse);
+} else {
+  console.error('uvx not found, skipping browser-use, playwright-html, selenium-html, and computer-use (install uv)');
+}
 const tasks = JSON.parse(readFileSync(new URL('./tasks.json', import.meta.url), 'utf8'));
 
 const estimateTokens = (s) => Math.ceil(s.length / 4);
@@ -23,7 +34,7 @@ for (const task of tasks) {
         model: adapter.model ?? 'none',
         ok: r.output.trim().length > 0,
         status: r.status,
-        tokens: estimateTokens(r.output),
+        tokens: r.tokens ?? estimateTokens(r.output),
         ms: Math.round(performance.now() - t0),
         fetchMs: r.fetchMs,
         processMs: r.processMs,
@@ -79,3 +90,4 @@ mkdirSync(new URL('./results/', import.meta.url), { recursive: true });
 writeFileSync(new URL('./results/latest.json', import.meta.url), JSON.stringify(results, null, 2));
 writeFileSync(new URL('./results/latest.md', import.meta.url), lines.join('\n') + '\n');
 console.error('written to results/latest.json');
+closePlaywrightMcp();
