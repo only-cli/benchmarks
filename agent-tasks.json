@@ -1,17 +1,41 @@
 [
   {
     "id": "hn-top",
+    "tier": "single page",
     "url": "https://news.ycombinator.com",
     "goal": "What is the title of the #1 story on Hacker News right now?"
   },
   {
     "id": "gh-search",
+    "tier": "single page",
     "url": "https://github.com/search?q=terminal+file+manager&type=repositories",
     "goal": "Which repository is the first result of this GitHub search, and roughly how many stars does it have?"
   },
   {
     "id": "reddit-thread",
+    "tier": "single page",
     "url": "https://old.reddit.com/r/linuxquestions/comments/xpznb1/best_terminal_web_browser/",
     "goal": "Which terminal web browser do commenters in this thread recommend most?"
+  },
+  {
+    "id": "hn-comments",
+    "tier": "multi step",
+    "url": "https://news.ycombinator.com",
+    "goal": "Starting from the Hacker News front page, open the comments page of the #1 story and report the story title and the point the top comment makes.",
+    "maxTurns": 25
+  },
+  {
+    "id": "gh-repo-detail",
+    "tier": "multi step",
+    "url": "https://github.com/search?q=terminal+file+manager&type=repositories",
+    "goal": "Starting from this GitHub search, open the repository that is the first result and report which open source license it is published under.",
+    "maxTurns": 25
+  },
+  {
+    "id": "ddg-follow",
+    "tier": "multi step",
+    "url": "https://html.duckduckgo.com/html/?q=the+rust+programming+language+book",
+    "goal": "Starting from this DuckDuckGo search, open the official Rust book introduction on doc.rust-lang.org and report the first sentence of its introduction.",
+    "maxTurns": 25
   }
 ]

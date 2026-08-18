@@ -13,5 +13,5 @@ allowed-tools: Bash(oc:*)
 Tips:
 
 - Quote URLs that contain `&` or `?`.
-- To follow a `[n]` link, open its URL with another `oc open`.
+- Following a link: the compact view leaves URLs out to save tokens, so to get one, use `oc open <url> --json`, which lists every `[n]` with its `href`, or `oc raw <url>`, whose markdown links carry the URLs. Relative hrefs resolve against the page you opened. Then `oc open` that URL.
 - If a compact view looks empty or blocked, try `oc raw <url>` before giving up.

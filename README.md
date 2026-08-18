@@ -75,9 +75,9 @@ Node 20+, no dependencies. Results print as a markdown table and land in `result
 node agent-run.js
 ```
 
-It runs Claude Code headless (`claude -p`, JSON output) on the tasks in `agent-tasks.json`, once per tool condition: oc, raw curl, lynx, Jina Reader, and Playwright MCP (attached as a real MCP server). Each run is restricted to its one tool through allowed-tools rules, with WebFetch and WebSearch disabled so the model cannot cheat. Every condition also ships a matching [skill](.claude/skills) documenting its tool (browse-oc, browse-curl, browse-lynx, browse-jina, browse-playwright-mcp), and a session is allowed exactly its own, so every agent starts from the same quality of tool documentation instead of whatever the model happens to know. From the JSON it records success, turns, wall time, cost in USD, and full token usage per model: input, output, cache read, and cache creation, shown as columns in the per-run table and broken out per model in `results/agent-latest.json`. The model column finally earns its name here; set `AGENT_MODEL` to rerun the same conditions on another model. `node agent-run.js --report-only` re-renders the tables from the last saved JSON without spending any sessions.
+It runs Claude Code headless (`claude -p`, JSON output) on the tasks in `agent-tasks.json`, once per tool condition: oc, raw curl, lynx, Jina Reader, and Playwright MCP (attached as a real MCP server). Tasks come in two tiers. Single page tasks answer a question from one URL. Multi step tasks start on one page and require finding a link and opening a second one (front page to comment thread, search results to repository, search engine to documentation site), which is where token cost compounds: the first page is re-read on every turn that follows it. A task may raise the turn cap with `maxTurns`; the default is 12. Each run is restricted to its one tool through allowed-tools rules, with WebFetch and WebSearch disabled so the model cannot cheat. Every condition also ships a matching [skill](.claude/skills) documenting its tool (browse-oc, browse-curl, browse-lynx, browse-jina, browse-playwright-mcp), and a session is allowed exactly its own, so every agent starts from the same quality of tool documentation instead of whatever the model happens to know. From the JSON it records success, turns, wall time, cost in USD, and full token usage per model: input, output, cache read, and cache creation, shown as columns in the per-run table and broken out per model in `results/agent-latest.json`. The model column finally earns its name here; set `AGENT_MODEL` to rerun the same conditions on another model. `node agent-run.js --report-only` re-renders the tables from the last saved JSON without spending any sessions.
 
-Requirements: `claude` on PATH and logged in, `oc` on PATH (`npm install -g @only-cli/oc@beta`), lynx for the lynx condition. Fair warning: every run spends real model quota; three tasks times five tools is fifteen agent sessions, a dollar or two on Sonnet.
+Requirements: `claude` on PATH and logged in, `oc` on PATH (`npm install -g @only-cli/oc@beta`), lynx for the lynx condition. Fair warning: every run spends real model quota; six tasks times five tools is thirty agent sessions, a few dollars on Sonnet.
 
 Network benchmarks are honest but noisy: they hit live sites, so numbers vary run to run and a site may block or change at any time. Compare orders of magnitude, not single-digit percentages.
 
@@ -105,31 +105,45 @@ The failure columns earned their keep. Lynx got blocked outright on the DuckDuck
 
 ### Latest agent results
 
-Claude Code headless on `claude-sonnet-5`, same date, three tasks (Hacker News front page, a GitHub repository search, an old.reddit thread) times five tool conditions, fifteen agent sessions. Full rows with each agent's answer are in [results/agent-latest.md](results/agent-latest.md).
+Claude Code headless on `claude-sonnet-5`, same date, six tasks times five tool conditions, thirty agent sessions. Three single page tasks (Hacker News front page, a GitHub repository search, an old.reddit thread) and three multi step ones (front page to the #1 story's comments, repository search to the winning repository's license, DuckDuckGo to the Rust book's introduction). Full rows with each agent's answer are in [results/agent-latest.md](results/agent-latest.md).
 
 | tool | model | success | turns | output tokens | total tokens | total cost USD | avg s |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| oc | claude-sonnet-5 | 3/3 ✅ | 14 | 842 | 353379 | 0.2191 ✅ | 12 |
-| raw-curl | claude-sonnet-5 | 2/3 | 23 | 907 | 253776 | 0.1441 | 23 |
-| lynx | claude-sonnet-5 | 3/3 ✅ | 13 ✅ | 793 ✅ | 323725 ✅ | 0.2580 | 10 ✅ |
-| jina-reader | claude-sonnet-5 | 3/3 ✅ | 13 ✅ | 1082 | 361603 | 0.2684 | 14 |
-| playwright-mcp | claude-sonnet-5 | 3/3 ✅ | 18 | 1314 | 491779 | 0.3293 | 17 |
+| oc | claude-sonnet-5 | 6/6 ✅ | 31 | 2121 | 871909 | 0.7367 | 13 ✅ |
+| raw-curl | claude-sonnet-5 | 4/6 | 61 | 3888 | 1031894 | 0.5409 | 39 |
+| lynx | claude-sonnet-5 | 6/6 ✅ | 29 ✅ | 1967 | 772831 ✅ | 0.5492 ✅ | 14 |
+| jina-reader | claude-sonnet-5 | 6/6 ✅ | 30 | 1899 ✅ | 855243 | 0.7222 | 19 |
+| playwright-mcp | claude-sonnet-5 | 6/6 ✅ | 48 | 4837 | 1575695 | 1.2245 | 29 |
 
-Turns count every run, failures included; token and cost totals count successes only. The ✅ marks the best value in each column among tools that finished every task; a tool that skipped a third of the work by failing would otherwise "win" every token column. Charted with nothing hidden, every token claude billed for a tool across the three tasks, failed runs included:
+Turns count every run, failures included; token and cost totals count successes only. The ✅ marks the best value in each column among tools that finished every task; a tool that skipped work by failing would otherwise "win" every token column. Charted with nothing hidden, every token claude billed for a tool across the six tasks, failed runs included:
 
 ```
-oc             ######################                     353,379 tokens  14 turns
-raw-curl       ########################################   651,102 tokens  23 turns  1 failed
-lynx           ####################                       323,725 tokens  13 turns
-jina-reader    ######################                     361,603 tokens  13 turns
-playwright-mcp ##############################             491,779 tokens  18 turns
+oc             ###################                        871,909 tokens  31 turns
+raw-curl       ########################################  1,855,550 tokens  61 turns  2 failed
+lynx           #################                          772,831 tokens  29 turns
+jina-reader    ##################                         855,243 tokens  30 turns
+playwright-mcp ##################################        1,575,695 tokens  48 turns
 ```
 
-oc finished all three tasks at the lowest cost of any full-success condition, and oc and lynx were the only tools whose answers were real content on every task: Jina Reader and Playwright MCP "completed" the Reddit task by correctly reporting that Reddit blocks them, an answer but not the content, where oc's Chrome-impersonated client read the thread. Raw curl burned its full 13-turn budget on that task, roughly 400k tokens and twenty cents, and returned nothing; its totals above count only its successes. Lynx kept pace here because these three sites tolerate it; the page-level table above shows what happens when one does not (DuckDuckGo).
+Splitting the totals by tier shows what an extra hop costs:
 
-The breakdown columns show where the money actually goes: almost everything is cache reads, because the agent re-reads its whole conversation every turn, so a bloated page is paid for again on every turn that follows it. That snowball is why raw curl's 13-turn Reddit failure costs 400k tokens, and why handing the agent a compact page pays off more the longer the task runs.
+| tool | single page tokens | single page turns | multi step tokens | multi step turns |
+| --- | ---: | ---: | ---: | ---: |
+| oc | 392,042 | 15 | 479,867 | 16 |
+| raw-curl | 917,891 (2 failed) | 30 | 937,659 | 31 |
+| lynx | 352,163 | 14 | 420,668 | 15 |
+| jina-reader | 298,634 | 12 | 556,609 | 18 |
+| playwright-mcp | 526,571 | 19 | 1,049,124 | 29 |
 
-Two honesty notes on the absolute numbers. Every total includes Claude Code's own session overhead, roughly 60k tokens per run, mostly cached reads of its system prompt, plus a couple of turns to load the tool's skill, so the differences between rows are the signal, not the absolute figures. And live sites move between runs: Jina Reader answered the Hacker News task with a cached front page whose #1 story had already rotated out, right or stale depending on when its cache last saw the page.
+Four of the five tools answered all six tasks. Raw curl failed two, the GitHub search and the Reddit thread, burning its full 13-turn budget and roughly 400k tokens on each before giving up.
+
+The honest headline of this round is that lynx, not oc, takes the token and cost columns. The reason is a missing feature, and it shows up in the multi step tier: oc's compact view leaves link URLs out to save tokens, and `oc do <n>` does not ship until v0.2, so an agent that needs to follow a link has to re-fetch the page as `oc open --json` (18.8k characters on the Hacker News front page) or `oc raw` (11.2k) to see where `[15]` points, against 1.7k for the compact view it already had. Lynx pays nothing for this: `lynx -dump` prints a references list with every URL next to the text. That navigation tax is most of oc's 59k token gap on the multi step tier, and all of it on the GitHub task (187k for oc against 140k for lynx). Numbered actions that an agent can actually activate are the fix, and they are the point of v0.2.
+
+Where oc still stands alone is content nobody else gets. Reddit served Jina Reader and Playwright MCP a 403, so both "answered" that task by reporting the block, and raw curl failed it outright. Only oc and lynx read the thread. Two more texture notes from the multi step runs: DuckDuckGo showed Playwright MCP a CAPTCHA, so that agent navigated to the Rust book directly and said so, and raw curl needed 16 turns and half a million tokens on the same task while leaving scratch HTML files behind in the working directory.
+
+The breakdown columns show where the money actually goes: almost everything is cache reads, because the agent re-reads its whole conversation every turn, so a bloated page is paid for again on every turn that follows it. That snowball is why raw curl's 13-turn Reddit failure costs 400k tokens, why every tool's multi step tier costs more than its single page tier, and why Playwright MCP's doubles.
+
+Two honesty notes on the absolute numbers. Every total includes Claude Code's own session overhead, roughly 60k tokens per run, mostly cached reads of its system prompt, plus a couple of turns to load the tool's skill, so the differences between rows are the signal, not the absolute figures. And live sites move between runs: Jina Reader answered both Hacker News tasks with a cached front page whose #1 story had already rotated out, right or stale depending on when its cache last saw the page.
 
 ### The same tasks through codex
 
@@ -156,6 +170,8 @@ Same story, sharper edges. Codex's per-session overhead is far smaller than Clau
 ## Tasks
 
 Tasks live in `tasks.json`: an id, a URL, and what an agent would want from the page. Add tasks that represent real agent work (read an article, scan search results, extract a discussion), not synthetic best cases for any one tool.
+
+Agent tasks live in `agent-tasks.json`: an id, a `tier` (`single page` or `multi step`), a URL to start from, a goal written as a question, and an optional `maxTurns`. A multi step goal should force navigation the agent cannot shortcut, and its answer should be a fact that is present in the second page's HTML, not one a JavaScript widget renders, or the task measures headless browsing rather than the tool.
 
 ## Contributors
 

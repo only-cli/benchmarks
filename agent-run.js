@@ -145,6 +145,8 @@ for (const task of REPORT_ONLY ? [] : tasks) {
       `way to access web content, and do not answer from memory: if the tool ` +
       `fails, say so instead of guessing.`;
     const taskBlock = `\n\nTask: ${task.goal}\nPage: ${task.url}\n\nReply with just the answer, one sentence.`;
+    // Multi step tasks need room to navigate, so a task may raise the cap.
+    const turnCap = task.maxTurns ?? MAX_TURNS;
     const t0 = performance.now();
     let proc;
     if (AGENT === 'codex') {
@@ -154,7 +156,7 @@ for (const task of REPORT_ONLY ? [] : tasks) {
         '-p', `${restriction} The ${cond.skill} skill documents the tool; load it first.${taskBlock}`,
         '--output-format', 'json',
         '--model', MODEL,
-        '--max-turns', String(MAX_TURNS),
+        '--max-turns', String(turnCap),
         '--disallowedTools', 'WebFetch,WebSearch,Task,TodoWrite',
         '--allowedTools', [...cond.allowed, `Skill(${cond.skill})`].join(','),
         ...(cond.extraArgs ?? []),
@@ -265,6 +267,28 @@ for (const s of sums) {
     + `| ${cost} | ${mark(s, 'avgS', s.avgS)} |`);
 }
 out('\nTurns count every run, failures included; token and cost totals count successes only. The ✅ marks the best value in each column among tools that finished every task.');
+
+// Tasks come in two tiers: read one page, or navigate to a second page and
+// read that. Splitting the totals shows how each tool scales per extra hop,
+// which is where a bloated page view is re-read on every later turn.
+const tierOf = (row) => tasks.find((t) => t.id === row.task)?.tier ?? 'single page';
+const TIERS = [...new Set(tasks.map((t) => t.tier ?? 'single page'))];
+if (TIERS.length > 1) {
+  out('\n### Cost per tier: one page versus following a link');
+  out(`| tool | ${TIERS.map((t) => `${t} tokens | ${t} turns`).join(' | ')} |`);
+  out(`| --- | ${TIERS.map(() => '---: | ---:').join(' | ')} |`);
+  for (const cond of CONDITIONS) {
+    const cells = TIERS.map((tier) => {
+      const rows = results.filter((r) => r.tool === cond.name && tierOf(r) === tier);
+      const tokens = rows.reduce((sum, r) => sum + (r.tokens ?? 0), 0);
+      const turns = rows.reduce((sum, r) => sum + (r.turns ?? 0), 0);
+      const fails = rows.filter((r) => !r.ok).length;
+      return `${tokens.toLocaleString('en-US')}${fails ? ` (${fails} failed)` : ''} | ${turns}`;
+    });
+    out(`| ${cond.name} | ${cells.join(' | ')} |`);
+  }
+  out('\nEvery run in this table counts, failures included.');
+}
 
 // The spend chart is the honest one: everything claude billed for a tool
 // across all tasks, failed runs included, since those tokens were spent too.
