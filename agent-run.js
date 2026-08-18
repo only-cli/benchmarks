@@ -62,8 +62,14 @@ const CONDITIONS = [
   },
 ];
 
-const results = [];
-for (const task of tasks) {
+// --report-only re-renders the tables from the last saved JSON, no sessions
+// spent, for reformatting or inspecting a finished run.
+const REPORT_ONLY = process.argv.includes('--report-only');
+
+const results = REPORT_ONLY
+  ? JSON.parse(readFileSync(new URL('./results/agent-latest.json', import.meta.url), 'utf8'))
+  : [];
+for (const task of REPORT_ONLY ? [] : tasks) {
   for (const cond of CONDITIONS) {
     const prompt =
       `You may read the web ONLY through ${cond.usage}. Do not use any other ` +
@@ -126,24 +132,27 @@ for (const task of tasks) {
 const lines = [];
 const out = (l) => { lines.push(l); console.log(l); };
 
-out('| task | tool | model | ok | turns | total tokens | cost USD | s | answer |');
-out('| --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- |');
+out('| task | tool | model | ok | turns | in | out | cache read | cache write | total tokens | cost USD | s | answer |');
+out('| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |');
 for (const r of results) {
   const answer = r.error ? `error: ${r.error}` : (r.answer ?? '').slice(0, 80);
+  const b = r.tokenBreakdown ?? {};
   out(`| ${r.task} | ${r.tool} | ${r.model} | ${r.ok ? 'yes' : 'NO'} | ${r.turns ?? ''} `
+    + `| ${b.input ?? ''} | ${b.output ?? ''} | ${b.cacheRead ?? ''} | ${b.cacheCreation ?? ''} `
     + `| ${r.tokens ?? ''} | ${r.costUSD?.toFixed(4) ?? ''} | ${Math.round(r.ms / 1000)} | ${answer} |`);
 }
 
 out('\n### Summary');
-out('| tool | model | success | total tokens | total cost USD | avg s |');
-out('| --- | --- | ---: | ---: | ---: | ---: |');
+out('| tool | model | success | output tokens | total tokens | total cost USD | avg s |');
+out('| --- | --- | ---: | ---: | ---: | ---: | ---: |');
 for (const cond of CONDITIONS) {
   const rows = results.filter((r) => r.tool === cond.name);
   const okRows = rows.filter((r) => r.ok);
   const tokens = okRows.reduce((sum, r) => sum + (r.tokens ?? 0), 0);
+  const outTokens = okRows.reduce((sum, r) => sum + (r.tokenBreakdown?.output ?? 0), 0);
   const cost = okRows.reduce((sum, r) => sum + (r.costUSD ?? 0), 0);
   const avgS = Math.round(rows.reduce((sum, r) => sum + r.ms, 0) / rows.length / 1000);
-  out(`| ${cond.name} | ${rows[0]?.model ?? MODEL} | ${okRows.length}/${rows.length} | ${tokens} | ${cost.toFixed(4)} | ${avgS} |`);
+  out(`| ${cond.name} | ${rows[0]?.model ?? MODEL} | ${okRows.length}/${rows.length} | ${outTokens} | ${tokens} | ${cost.toFixed(4)} | ${avgS} |`);
 }
 
 mkdirSync(new URL('./results/', import.meta.url), { recursive: true });
