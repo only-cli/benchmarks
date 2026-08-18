@@ -1,6 +1,6 @@
 # only-cli benchmarks
 
-Reproducible comparisons of [oc](https://github.com/only-cli/only-cli) against other ways AI agents read the web. The question every benchmark here answers: for the same page and the same task, how many tokens does the agent have to read, how long does it take, and did it actually get the content?
+Reproducible comparisons of [oc](https://github.com/only-cli/oc) against other ways AI agents read the web. The question every benchmark here answers: for the same page and the same task, how many tokens does the agent have to read, how long does it take, and did it actually get the content?
 
 ## Metrics
 
