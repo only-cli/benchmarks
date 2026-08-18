@@ -131,6 +131,28 @@ The breakdown columns show where the money actually goes: almost everything is c
 
 Two honesty notes on the absolute numbers. Every total includes Claude Code's own session overhead, roughly 60k tokens per run, mostly cached reads of its system prompt, plus a couple of turns to load the tool's skill, so the differences between rows are the signal, not the absolute figures. And live sites move between runs: Jina Reader answered the Hacker News task with a cached front page whose #1 story had already rotated out, right or stale depending on when its cache last saw the page.
 
+### The same tasks through codex
+
+`AGENT_CLI=codex node agent-run.js` runs the identical conditions through `codex exec`, the OpenAI Codex CLI's answer to `claude -p`, reading token usage from its `--json` event stream into [results/agent-latest-codex.md](results/agent-latest-codex.md). Codex differences: no allowed-tools equivalent, so the one-tool restriction is prompt-only; it cannot load claude skills, so the same skill body rides along in the prompt; no per-run cost on a ChatGPT plan; no turn cap; and its turns count completed tool calls and messages, since codex reports one turn per session however much happens inside it.
+
+| tool | model | success | turns | output tokens | total tokens | avg s |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| oc | gpt-5.6-sol | 3/3 ✅ | 8 | 1021 | 110551 | 16 |
+| raw-curl | gpt-5.6-sol | 3/3 ✅ | 46 | 7391 | 978663 | 74 |
+| lynx | gpt-5.6-sol | 3/3 ✅ | 11 | 2692 | 201790 | 28 |
+| jina-reader | gpt-5.6-sol | 3/3 ✅ | 7 ✅ | 524 ✅ | 91942 ✅ | 12 ✅ |
+| playwright-mcp | gpt-5.6-sol | 3/3 ✅ | 10 | 1024 | 190825 | 23 |
+
+```
+oc             #####                                      110,551 tokens   8 turns
+raw-curl       ########################################   978,663 tokens  46 turns
+lynx           ########                                   201,790 tokens  11 turns
+jina-reader    ####                                        91,942 tokens   7 turns
+playwright-mcp ########                                   190,825 tokens  10 turns
+```
+
+Same story, sharper edges. Codex's per-session overhead is far smaller than Claude Code's, so every total shrinks, and the tool differences stand out more. Jina Reader's check marks come with the same asterisk as before: its Reddit "success" (and Playwright MCP's) was a one-sentence report that Reddit blocked it, not the content. Among tools that actually delivered the page on all three tasks, oc is the cheapest at 110,551 tokens across 8 tool calls. The most instructive row is raw curl: where the turn-capped claude gave up on Reddit, codex kept grinding and eventually got the answer, at 41 iterations, 872k tokens, and 191 seconds for that one task, nearly 8x oc's whole three-task total. Token bloat does not always make an agent fail; it makes the same answer cost an order of magnitude more.
+
 ## Tasks
 
 Tasks live in `tasks.json`: an id, a URL, and what an agent would want from the page. Add tasks that represent real agent work (read an article, scan search results, extract a discussion), not synthetic best cases for any one tool.
