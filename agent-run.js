@@ -45,8 +45,9 @@ const CONDITIONS = [
   {
     name: 'oc',
     usage: 'the `oc` commands in Bash: `oc open <url>`, `oc do <n>` to follow a numbered link, '
-      + '`oc next` for the next screenful of the page already open, `oc read <n>` for one region '
-      + 'in full, and `oc raw <url>` when you need the whole page text',
+      + '`oc find <query>` to locate a string on the page already open, `oc read <n>` for one '
+      + 'region in full, `oc next` for the next screenful, and `oc raw <url>` when you need the '
+      + 'whole page text',
     skill: 'browse-oc',
     allowed: ['Bash(oc:*)'],
   },
