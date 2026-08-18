@@ -10,6 +10,7 @@
 // tools is fifteen agent runs.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const tasks = JSON.parse(readFileSync(new URL('./agent-tasks.json', import.meta.url), 'utf8'));
 const MODEL = process.env.AGENT_MODEL ?? 'sonnet';
@@ -24,31 +25,40 @@ const PLAYWRIGHT_MCP = JSON.stringify({
   },
 });
 
+// Each condition ships a skill in .claude/skills documenting its tool, and a
+// session is allowed exactly its own skill, so every agent starts from the
+// same quality of tool documentation instead of whatever it happens to know.
 const CONDITIONS = [
   {
     name: 'oc',
     usage: 'the command `oc open <url>` in Bash (and `oc raw <url>` when you need the full page text)',
-    args: ['--allowedTools', 'Bash(oc:*)'],
+    skill: 'browse-oc',
+    allowed: ['Bash(oc:*)'],
   },
   {
     name: 'raw-curl',
     usage: 'the command `curl -s <url>` in Bash, reading the raw HTML yourself',
-    args: ['--allowedTools', 'Bash(curl:*)'],
+    skill: 'browse-curl',
+    allowed: ['Bash(curl:*)'],
   },
   {
     name: 'lynx',
     usage: 'the command `lynx -dump <url>` in Bash',
-    args: ['--allowedTools', 'Bash(lynx:*)'],
+    skill: 'browse-lynx',
+    allowed: ['Bash(lynx:*)'],
   },
   {
     name: 'jina-reader',
     usage: 'the command `curl -s https://r.jina.ai/<url>` in Bash, which returns the page as markdown',
-    args: ['--allowedTools', 'Bash(curl:*)'],
+    skill: 'browse-jina',
+    allowed: ['Bash(curl:*)'],
   },
   {
     name: 'playwright-mcp',
     usage: 'the playwright MCP browser tools (browser_navigate and friends)',
-    args: ['--allowedTools', 'mcp__playwright', '--mcp-config', PLAYWRIGHT_MCP, '--strict-mcp-config'],
+    skill: 'browse-playwright-mcp',
+    allowed: ['mcp__playwright'],
+    extraArgs: ['--mcp-config', PLAYWRIGHT_MCP, '--strict-mcp-config'],
   },
 ];
 
@@ -57,7 +67,8 @@ for (const task of tasks) {
   for (const cond of CONDITIONS) {
     const prompt =
       `You may read the web ONLY through ${cond.usage}. Do not use any other ` +
-      `way to access web content.\n\nTask: ${task.goal}\nPage: ${task.url}\n\n` +
+      `way to access web content. The ${cond.skill} skill documents the tool; ` +
+      `load it first.\n\nTask: ${task.goal}\nPage: ${task.url}\n\n` +
       `Reply with just the answer, one sentence.`;
     const t0 = performance.now();
     const proc = spawnSync('claude', [
@@ -66,8 +77,12 @@ for (const task of tasks) {
       '--model', MODEL,
       '--max-turns', String(MAX_TURNS),
       '--disallowedTools', 'WebFetch,WebSearch,Task,TodoWrite',
-      ...cond.args,
+      '--allowedTools', [...cond.allowed, `Skill(${cond.skill})`].join(','),
+      ...(cond.extraArgs ?? []),
     ], {
+      // The per-tool skills live in this repo's .claude/skills; sessions must
+      // start here to see them.
+      cwd: fileURLToPath(new URL('./', import.meta.url)),
       encoding: 'utf8',
       timeout: 600_000,
       maxBuffer: 64 * 1024 * 1024,

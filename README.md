@@ -1,6 +1,8 @@
-# only-cli benchmarks
+# Browse the web in hundreds of tokens, not tens of thousands
 
-Reproducible comparisons of [oc](https://github.com/only-cli/oc) against other ways AI agents read the web. The question every benchmark here answers: for the same page and the same task, how many tokens does the agent have to read, how long does it take, and did it actually get the content?
+The same live pages, eleven ways AI agents read the web: [oc](https://github.com/only-cli/oc) hands the agent a page in a few hundred tokens where raw HTML costs tens of thousands, and it was the only reader to return real content on every task. These benchmarks are the receipts, reproducible on your machine.
+
+Every benchmark here answers the same question: for the same page and the same task, how many tokens does the agent have to read, how long does it take, and did it actually get the content?
 
 ## Metrics
 
@@ -73,7 +75,7 @@ Node 20+, no dependencies. Results print as a markdown table and land in `result
 node agent-run.js
 ```
 
-It runs Claude Code headless (`claude -p`, JSON output) on the tasks in `agent-tasks.json`, once per tool condition: oc, raw curl, lynx, Jina Reader, and Playwright MCP (attached as a real MCP server). Each run is restricted to its one tool through allowed-tools rules, with WebFetch and WebSearch disabled so the model cannot cheat. From the JSON it records success, turns, wall time, cost in USD, and full token usage per model: input, output, cache read, and cache creation, summed into the table and broken out in `results/agent-latest.json`. The model column finally earns its name here; set `AGENT_MODEL` to rerun the same conditions on another model.
+It runs Claude Code headless (`claude -p`, JSON output) on the tasks in `agent-tasks.json`, once per tool condition: oc, raw curl, lynx, Jina Reader, and Playwright MCP (attached as a real MCP server). Each run is restricted to its one tool through allowed-tools rules, with WebFetch and WebSearch disabled so the model cannot cheat. Every condition also ships a matching [skill](.claude/skills) documenting its tool (browse-oc, browse-curl, browse-lynx, browse-jina, browse-playwright-mcp), and a session is allowed exactly its own, so every agent starts from the same quality of tool documentation instead of whatever the model happens to know. From the JSON it records success, turns, wall time, cost in USD, and full token usage per model: input, output, cache read, and cache creation, summed into the table and broken out in `results/agent-latest.json`. The model column finally earns its name here; set `AGENT_MODEL` to rerun the same conditions on another model.
 
 Requirements: `claude` on PATH and logged in, `oc` on PATH (`npm install -g @only-cli/oc@beta`), lynx for the lynx condition. Fair warning: every run spends real model quota; three tasks times five tools is fifteen agent sessions, a dollar or two on Sonnet.
 
@@ -97,7 +99,7 @@ only-cli 0.2.0-beta.1 (installed from `@only-cli/oc@beta`), Node 24, run on 2026
 | claude-computer-use | none | 6/6 | 6294 | 840 | 336 | 769 |
 | openai-computer-use | none | 6/6 | 4590 | 0 | 336 | 769 |
 
-oc-open hands the agent 3x fewer tokens than anything else on the board and 92x fewer than raw HTML. The nearest rivals are floors, not full reads: the computer-use rows price a single 1024x768 screenshot, one look at the top of the page before any scrolling, and browser-use's state message carries indexed elements but drops most page text. Among methods that actually deliver the page content, the gap is 8x to Jina Reader and 13x to Playwright MCP's accessibility snapshot, and the rendered-HTML routes (Playwright, Selenium) cost nearly as much as raw fetch plus a browser.
+oc-open reads all six pages for less than half the tokens of its cheapest rival, a single-screenshot floor, and 92x fewer than raw HTML. The nearest rivals are floors, not full reads: the computer-use rows price a single 1024x768 screenshot, one look at the top of the page before any scrolling, and browser-use's state message carries indexed elements but drops most page text. Among methods that actually deliver the page content, the gap is 8x to Jina Reader and 13x to Playwright MCP's accessibility snapshot, and the rendered-HTML routes (Playwright, Selenium) cost nearly as much as raw fetch plus a browser.
 
 The failure columns earned their keep. Lynx got blocked outright on the DuckDuckGo search task, raw-fetch got DuckDuckGo's challenge page (HTTP 202, visible in the status column) instead of results, Jina's 295-token Reddit "result" is Reddit's block page ("whoa there, pardner!", a 403 to its crawler wrapped in a 200), and browser-use came back from Reddit nearly empty. oc, riding its Chrome-impersonated client, was the only cleaner that returned real content on all six tasks.
 
@@ -107,15 +109,15 @@ Claude Code headless on `claude-sonnet-5`, same date, three tasks (Hacker News f
 
 | tool | model | success | total tokens | total cost USD | avg s |
 | --- | --- | ---: | ---: | ---: | ---: |
-| oc | claude-sonnet-5 | 3/3 | 291938 | 0.2026 | 11 |
-| raw-curl | claude-sonnet-5 | 2/3 | 236852 | 0.1559 | 27 |
-| lynx | claude-sonnet-5 | 3/3 | 261073 | 0.2324 | 10 |
-| jina-reader | claude-sonnet-5 | 2/3 | 140365 | 0.1730 | 24 |
-| playwright-mcp | claude-sonnet-5 | 2/3 | 285364 | 0.3224 | 31 |
+| oc | claude-sonnet-5 | 3/3 | 353379 | 0.2191 | 12 |
+| raw-curl | claude-sonnet-5 | 2/3 | 253776 | 0.1441 | 23 |
+| lynx | claude-sonnet-5 | 3/3 | 323725 | 0.2580 | 10 |
+| jina-reader | claude-sonnet-5 | 3/3 | 361603 | 0.2684 | 14 |
+| playwright-mcp | claude-sonnet-5 | 3/3 | 491779 | 0.3293 | 17 |
 
-oc and lynx were the only conditions to finish all three tasks with real answers, and oc did it on the fewest tokens and the lowest cost of any full-success run. Token and cost totals count successful runs only, which understates how expensive failure is: raw curl, Jina Reader, and Playwright MCP each burned the full 13-turn budget on the Reddit task, roughly 400k tokens and twenty cents apiece, and returned nothing. Raw curl drowned in the page HTML; Reddit blocks both Jina's crawler and Playwright's automated browser, where oc's Chrome-impersonated client read the thread in 4 turns. Lynx kept pace here because these three sites tolerate it; the page-level table above shows what happens when one does not (DuckDuckGo).
+oc finished all three tasks at the lowest cost of any full-success condition, and oc and lynx were the only tools whose answers were real content on every task: Jina Reader and Playwright MCP "completed" the Reddit task by correctly reporting that Reddit blocks them, an answer but not the content, where oc's Chrome-impersonated client read the thread. Raw curl burned its full 13-turn budget on that task, roughly 400k tokens and twenty cents, and returned nothing; its totals above count only its successes. Lynx kept pace here because these three sites tolerate it; the page-level table above shows what happens when one does not (DuckDuckGo).
 
-Two honesty notes on the absolute numbers. Every total includes Claude Code's own session overhead, roughly 60k tokens per run, mostly cached reads of its system prompt, so the differences between rows are the signal, not the absolute figures. And live sites move between runs: Jina Reader answered the Hacker News task with a cached front page whose #1 story had already rotated out, right or stale depending on when its cache last saw the page.
+Two honesty notes on the absolute numbers. Every total includes Claude Code's own session overhead, roughly 60k tokens per run, mostly cached reads of its system prompt, plus a couple of turns to load the tool's skill, so the differences between rows are the signal, not the absolute figures. And live sites move between runs: Jina Reader answered the Hacker News task with a cached front page whose #1 story had already rotated out, right or stale depending on when its cache last saw the page.
 
 ## Tasks
 
