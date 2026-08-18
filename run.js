@@ -16,6 +16,7 @@ for (const task of tasks) {
       results.push({
         task: task.id,
         adapter: adapter.name,
+        model: adapter.model ?? 'none',
         ok: r.output.trim().length > 0,
         status: r.status,
         tokens: estimateTokens(r.output),
@@ -29,6 +30,7 @@ for (const task of tasks) {
       results.push({
         task: task.id,
         adapter: adapter.name,
+        model: adapter.model ?? 'none',
         ok: false,
         error: err.message.split('\n')[0],
         ms: Math.round(performance.now() - t0),
@@ -38,21 +40,24 @@ for (const task of tasks) {
   }
 }
 
+const lines = [];
+const out = (l) => { lines.push(l); console.log(l); };
+
 const cell = (v) => v ?? '';
 const kb = (bytes) => (bytes == null ? '' : Math.round(bytes / 1024));
 
-console.log('| task | adapter | ok | status | tokens | ms | fetch ms | process ms | KB | mem MB |');
-console.log('| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |');
+out('| task | adapter | model | ok | status | tokens | ms | fetch ms | process ms | KB | mem MB |');
+out('| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |');
 for (const r of results) {
-  console.log(
-    `| ${r.task} | ${r.adapter} | ${r.ok ? 'yes' : 'NO'} | ${cell(r.status)} | ${cell(r.tokens)} `
+  out(
+    `| ${r.task} | ${r.adapter} | ${r.model} | ${r.ok ? 'yes' : 'NO'} | ${cell(r.status)} | ${cell(r.tokens)} `
     + `| ${r.ms} | ${cell(r.fetchMs)} | ${cell(r.processMs)} | ${kb(r.bytes)} | ${cell(r.memMB)} |`,
   );
 }
 
-console.log('\n### Summary');
-console.log('| adapter | success | total tokens | avg ms | avg fetch ms | total KB |');
-console.log('| --- | ---: | ---: | ---: | ---: | ---: |');
+out('\n### Summary');
+out('| adapter | model | success | total tokens | avg ms | avg fetch ms | total KB |');
+out('| --- | --- | ---: | ---: | ---: | ---: | ---: |');
 for (const adapter of ADAPTERS) {
   const rows = results.filter((r) => r.adapter === adapter.name);
   const okRows = rows.filter((r) => r.ok);
@@ -63,9 +68,10 @@ for (const adapter of ADAPTERS) {
     ? Math.round(fetched.reduce((sum, r) => sum + r.fetchMs, 0) / fetched.length)
     : '';
   const totalKB = kb(okRows.reduce((sum, r) => sum + (r.bytes ?? 0), 0));
-  console.log(`| ${adapter.name} | ${okRows.length}/${rows.length} | ${totalTokens} | ${avgMs} | ${avgFetchMs} | ${totalKB} |`);
+  out(`| ${adapter.name} | ${adapter.model ?? 'none'} | ${okRows.length}/${rows.length} | ${totalTokens} | ${avgMs} | ${avgFetchMs} | ${totalKB} |`);
 }
 
 mkdirSync(new URL('./results/', import.meta.url), { recursive: true });
 writeFileSync(new URL('./results/latest.json', import.meta.url), JSON.stringify(results, null, 2));
+writeFileSync(new URL('./results/latest.md', import.meta.url), lines.join('\n') + '\n');
 console.error('written to results/latest.json');
