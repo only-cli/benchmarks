@@ -17,10 +17,21 @@
 | reddit-thread | playwright-mcp | claude-sonnet-5 | yes | 6 | 1010 | 478 | 153265 | 4827 | 159580 | 0.0830 | 15 | Reddit blocked the automated browser (403 "blocked by network security"), so I c |
 
 ### Summary
-| tool | model | success | output tokens | total tokens | total cost USD | avg s |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| oc | claude-sonnet-5 | 3/3 | 842 | 353379 | 0.2191 | 12 |
-| raw-curl | claude-sonnet-5 | 2/3 | 907 | 253776 | 0.1441 | 23 |
-| lynx | claude-sonnet-5 | 3/3 | 793 | 323725 | 0.2580 | 10 |
-| jina-reader | claude-sonnet-5 | 3/3 | 1082 | 361603 | 0.2684 | 14 |
-| playwright-mcp | claude-sonnet-5 | 3/3 | 1314 | 491779 | 0.3293 | 17 |
+| tool | model | success | turns | output tokens | total tokens | total cost USD | avg s |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| oc | claude-sonnet-5 | 3/3 ✅ | 14 | 842 | 353379 | 0.2191 ✅ | 12 |
+| raw-curl | claude-sonnet-5 | 2/3 | 23 | 907 | 253776 | 0.1441 | 23 |
+| lynx | claude-sonnet-5 | 3/3 ✅ | 13 ✅ | 793 ✅ | 323725 ✅ | 0.2580 | 10 ✅ |
+| jina-reader | claude-sonnet-5 | 3/3 ✅ | 13 ✅ | 1082 | 361603 | 0.2684 | 14 |
+| playwright-mcp | claude-sonnet-5 | 3/3 ✅ | 18 | 1314 | 491779 | 0.3293 | 17 |
+
+Turns count every run, failures included; token and cost totals count successes only. The ✅ marks the best value in each column among tools that finished every task.
+
+### What each tool actually cost, failures included
+```
+oc             ######################                     353,379 tokens  14 turns
+raw-curl       ########################################   651,102 tokens  23 turns  1 failed
+lynx           ####################                       323,725 tokens  13 turns
+jina-reader    ######################                     361,603 tokens  13 turns
+playwright-mcp ##############################             491,779 tokens  18 turns
+```

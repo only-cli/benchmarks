@@ -107,13 +107,23 @@ The failure columns earned their keep. Lynx got blocked outright on the DuckDuck
 
 Claude Code headless on `claude-sonnet-5`, same date, three tasks (Hacker News front page, a GitHub repository search, an old.reddit thread) times five tool conditions, fifteen agent sessions. Full rows with each agent's answer are in [results/agent-latest.md](results/agent-latest.md).
 
-| tool | model | success | total tokens | total cost USD | avg s |
-| --- | --- | ---: | ---: | ---: | ---: |
-| oc | claude-sonnet-5 | 3/3 | 353379 | 0.2191 | 12 |
-| raw-curl | claude-sonnet-5 | 2/3 | 253776 | 0.1441 | 23 |
-| lynx | claude-sonnet-5 | 3/3 | 323725 | 0.2580 | 10 |
-| jina-reader | claude-sonnet-5 | 3/3 | 361603 | 0.2684 | 14 |
-| playwright-mcp | claude-sonnet-5 | 3/3 | 491779 | 0.3293 | 17 |
+| tool | model | success | turns | output tokens | total tokens | total cost USD | avg s |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| oc | claude-sonnet-5 | 3/3 ✅ | 14 | 842 | 353379 | 0.2191 ✅ | 12 |
+| raw-curl | claude-sonnet-5 | 2/3 | 23 | 907 | 253776 | 0.1441 | 23 |
+| lynx | claude-sonnet-5 | 3/3 ✅ | 13 ✅ | 793 ✅ | 323725 ✅ | 0.2580 | 10 ✅ |
+| jina-reader | claude-sonnet-5 | 3/3 ✅ | 13 ✅ | 1082 | 361603 | 0.2684 | 14 |
+| playwright-mcp | claude-sonnet-5 | 3/3 ✅ | 18 | 1314 | 491779 | 0.3293 | 17 |
+
+Turns count every run, failures included; token and cost totals count successes only. The ✅ marks the best value in each column among tools that finished every task; a tool that skipped a third of the work by failing would otherwise "win" every token column. Charted with nothing hidden, every token claude billed for a tool across the three tasks, failed runs included:
+
+```
+oc             ######################                     353,379 tokens  14 turns
+raw-curl       ########################################   651,102 tokens  23 turns  1 failed
+lynx           ####################                       323,725 tokens  13 turns
+jina-reader    ######################                     361,603 tokens  13 turns
+playwright-mcp ##############################             491,779 tokens  18 turns
+```
 
 oc finished all three tasks at the lowest cost of any full-success condition, and oc and lynx were the only tools whose answers were real content on every task: Jina Reader and Playwright MCP "completed" the Reddit task by correctly reporting that Reddit blocks them, an answer but not the content, where oc's Chrome-impersonated client read the thread. Raw curl burned its full 13-turn budget on that task, roughly 400k tokens and twenty cents, and returned nothing; its totals above count only its successes. Lynx kept pace here because these three sites tolerate it; the page-level table above shows what happens when one does not (DuckDuckGo).
 

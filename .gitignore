@@ -10,3 +10,4 @@ reddit_thread.md
 /*.html
 /*.txt
 /*.md.tmp
+!results/agent-latest-codex.md
