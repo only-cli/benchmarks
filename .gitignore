@@ -5,4 +5,8 @@ results/*
 .playwright-mcp/
 .idea/
 tmp_*
+/page*.json
 reddit_thread.md
+/*.html
+/*.txt
+/*.md.tmp
