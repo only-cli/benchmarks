@@ -1,0 +1,6 @@
+[
+  { "id": "simple-page", "url": "https://example.com", "goal": "read a small static page" },
+  { "id": "news-front", "url": "https://news.ycombinator.com", "goal": "scan a link-heavy front page" },
+  { "id": "discussion", "url": "https://old.reddit.com/r/linuxquestions/comments/xpznb1/best_terminal_web_browser/", "goal": "extract a comment thread" },
+  { "id": "search-results", "url": "https://html.duckduckgo.com/html/?q=terminal+web+browser", "goal": "scan search results" }
+]
