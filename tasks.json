@@ -33,5 +33,10 @@
     "id": "stock-quote",
     "url": "https://finance.yahoo.com/quote/AAPL",
     "goal": "read a stock quote page"
+  },
+  {
+    "id": "subreddit-front",
+    "url": "https://old.reddit.com/r/ClaudeAI/",
+    "goal": "scan a subreddit front page"
   }
 ]

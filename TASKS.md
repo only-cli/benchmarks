@@ -1,11 +1,11 @@
 # Benchmark tasks
 
-Every number in this repo comes from these fourteen tasks against live websites. They are listed here so anyone can check that the benchmark is not a set of best cases for oc, and so anyone adding a task knows what a good one looks like.
+Every number in this repo comes from these sixteen tasks against live websites. They are listed here so anyone can check that the benchmark is not a set of best cases for oc, and so anyone adding a task knows what a good one looks like.
 
 There are two suites, because there are two questions.
 
-- `tasks.json` drives `run.js`, which asks what a method hands an agent for one page view. Eleven methods, seven pages.
-- `agent-tasks.json` drives `agent-run.js`, which asks what a whole task costs when a real agent does it with one tool. Five tools, seven tasks, run once through Claude Code and once through Codex.
+- `tasks.json` drives `run.js`, which asks what a method hands an agent for one page view. Eleven methods, eight pages.
+- `agent-tasks.json` drives `agent-run.js`, which asks what a whole task costs when a real agent does it with one tool. Five tools, eight tasks, run once through Claude Code and once through Codex.
 
 ## What earns a task its place
 
@@ -17,7 +17,7 @@ There are two suites, because there are two questions.
 
 ## Page view suite (`tasks.json`)
 
-Seven pages, chosen to span the range from trivial to hostile. Token counts below are from the run recorded in [results/latest.md](results/latest.md); `stock-quote` was added after that run, so it has no recorded numbers yet.
+Eight pages, chosen to span the range from trivial to hostile. Token counts below are from the run recorded in [results/latest.md](results/latest.md); `stock-quote` and `subreddit-front` were added after that run, so they have no recorded numbers yet.
 
 | id | page | what it exercises |
 | --- | --- | --- |
@@ -28,6 +28,7 @@ Seven pages, chosen to span the range from trivial to hostile. Token counts belo
 | `repo-search` | GitHub repository search | an application page wrapped in heavy chrome |
 | `company-page` | a LinkedIn company page, guest view | a login walled site's public view |
 | `stock-quote` | the Yahoo Finance AAPL quote page | a data dense finance page wrapped in heavy portal chrome |
+| `subreddit-front` | old.reddit.com/r/ClaudeAI | a front page of post listings, one hop before the discussion task's comments |
 
 What each one showed, in tokens per page view:
 
@@ -51,8 +52,9 @@ Each task is an id, a `tier`, a starting URL, a goal phrased as a question, and 
 | `hn-comments` | multi step | news.ycombinator.com | open the #1 story's comment page, report the story and the top comment's point |
 | `gh-repo-detail` | multi step | the same GitHub search | open the first result's repository, report its license |
 | `ddg-follow` | multi step | a DuckDuckGo search for the Rust book | open the book on doc.rust-lang.org, report the first sentence of its introduction |
+| `reddit-top-comment` | multi step | old.reddit.com/r/ClaudeAI | open the top post's comments, report the post title and the top comment's point |
 
-Multi step tasks carry `maxTurns: 25`; the default cap is 12.
+Multi step tasks carry `maxTurns: 25`; the default cap is 12. `stock-price` and `reddit-top-comment` were added after the run recorded below, so neither has numbers yet in the per-task tables that follow; see [only-cli's README](https://github.com/only-cli/oc#against-each-agents-own-defaults) for a default-tools measurement of `reddit-top-comment` in the meantime.
 
 ### Total tokens per task, Claude Code on claude-sonnet-5
 

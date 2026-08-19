@@ -43,5 +43,12 @@
     "url": "https://html.duckduckgo.com/html/?q=the+rust+programming+language+book",
     "goal": "Starting from this DuckDuckGo search, open the official Rust book introduction on doc.rust-lang.org and report the first sentence of its introduction.",
     "maxTurns": 25
+  },
+  {
+    "id": "reddit-top-comment",
+    "tier": "multi step",
+    "url": "https://old.reddit.com/r/ClaudeAI/",
+    "goal": "Starting from this subreddit's front page, open the top post's comments and report the post title and the point its top comment makes.",
+    "maxTurns": 25
   }
 ]
