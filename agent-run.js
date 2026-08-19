@@ -149,13 +149,21 @@ const REPORT_ONLY = process.argv.includes('--report-only');
 // spend twenty-odd sessions re-measuring rows that were already clean.
 const ONLY = (process.argv.find((a) => a.startsWith('--only='))?.slice('--only='.length) ?? '')
   .split(',').filter(Boolean);
+// --tools=id,id narrows which conditions actually run, for when only one
+// tool's rows are bad (an uninstalled binary, a broken skill) and the rest
+// of the row for that task is still good and shouldn't be re-spent.
+const TOOLS = (process.argv.find((a) => a.startsWith('--tools='))?.slice('--tools='.length) ?? '')
+  .split(',').filter(Boolean);
+const activeConditions = TOOLS.length ? CONDITIONS.filter((c) => TOOLS.includes(c.name)) : CONDITIONS;
 
 const saved = () =>
   JSON.parse(readFileSync(new URL(`./results/agent-latest${SUFFIX}.json`, import.meta.url), 'utf8'));
-const results = REPORT_ONLY ? saved() : ONLY.length ? saved().filter((r) => !ONLY.includes(r.task)) : [];
+const results = REPORT_ONLY ? saved()
+  : ONLY.length ? saved().filter((r) => !(ONLY.includes(r.task) && activeConditions.some((c) => c.name === r.tool)))
+  : [];
 const queue = REPORT_ONLY ? [] : ONLY.length ? tasks.filter((t) => ONLY.includes(t.id)) : tasks;
 for (const task of queue) {
-  for (const cond of CONDITIONS) {
+  for (const cond of activeConditions) {
     const restriction =
       `You may read the web ONLY through ${cond.usage}. Do not use any other ` +
       `way to access web content, and do not answer from memory: if the tool ` +
