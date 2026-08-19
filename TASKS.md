@@ -1,11 +1,11 @@
 # Benchmark tasks
 
-Every number in this repo comes from these twelve tasks against live websites. They are listed here so anyone can check that the benchmark is not a set of best cases for oc, and so anyone adding a task knows what a good one looks like.
+Every number in this repo comes from these fourteen tasks against live websites. They are listed here so anyone can check that the benchmark is not a set of best cases for oc, and so anyone adding a task knows what a good one looks like.
 
 There are two suites, because there are two questions.
 
-- `tasks.json` drives `run.js`, which asks what a method hands an agent for one page view. Eleven methods, six pages.
-- `agent-tasks.json` drives `agent-run.js`, which asks what a whole task costs when a real agent does it with one tool. Five tools, six tasks, run once through Claude Code and once through Codex.
+- `tasks.json` drives `run.js`, which asks what a method hands an agent for one page view. Eleven methods, seven pages.
+- `agent-tasks.json` drives `agent-run.js`, which asks what a whole task costs when a real agent does it with one tool. Five tools, seven tasks, run once through Claude Code and once through Codex.
 
 ## What earns a task its place
 
@@ -17,7 +17,7 @@ There are two suites, because there are two questions.
 
 ## Page view suite (`tasks.json`)
 
-Six pages, chosen to span the range from trivial to hostile. Token counts below are from the run recorded in [results/latest.md](results/latest.md).
+Seven pages, chosen to span the range from trivial to hostile. Token counts below are from the run recorded in [results/latest.md](results/latest.md); `stock-quote` was added after that run, so it has no recorded numbers yet.
 
 | id | page | what it exercises |
 | --- | --- | --- |
@@ -27,6 +27,7 @@ Six pages, chosen to span the range from trivial to hostile. Token counts below 
 | `search-results` | html.duckduckgo.com search | a search engine that challenges automated clients |
 | `repo-search` | GitHub repository search | an application page wrapped in heavy chrome |
 | `company-page` | a LinkedIn company page, guest view | a login walled site's public view |
+| `stock-quote` | the Yahoo Finance AAPL quote page | a data dense finance page wrapped in heavy portal chrome |
 
 What each one showed, in tokens per page view:
 
@@ -45,6 +46,7 @@ Each task is an id, a `tier`, a starting URL, a goal phrased as a question, and 
 | --- | --- | --- | --- |
 | `hn-top` | single page | news.ycombinator.com | the title of the #1 story |
 | `gh-search` | single page | GitHub search for terminal file managers | the first result and roughly its star count |
+| `stock-price` | single page | the Yahoo Finance AAPL quote page | the price at the most recent market close |
 | `reddit-thread` | single page | an old.reddit thread on terminal browsers | which browser commenters recommend most |
 | `hn-comments` | multi step | news.ycombinator.com | open the #1 story's comment page, report the story and the top comment's point |
 | `gh-repo-detail` | multi step | the same GitHub search | open the first result's repository, report its license |

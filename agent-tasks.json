@@ -12,6 +12,12 @@
     "goal": "Which repository is the first result of this GitHub search, and roughly how many stars does it have?"
   },
   {
+    "id": "stock-price",
+    "tier": "single page",
+    "url": "https://finance.yahoo.com/quote/AAPL",
+    "goal": "What was Apple's (AAPL) stock price at the most recent market close shown on this page?"
+  },
+  {
     "id": "reddit-thread",
     "tier": "single page",
     "url": "https://old.reddit.com/r/linuxquestions/comments/xpznb1/best_terminal_web_browser/",

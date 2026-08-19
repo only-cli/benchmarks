@@ -28,5 +28,10 @@
     "id": "company-page",
     "url": "https://www.linkedin.com/company/anthropic",
     "goal": "read a LinkedIn company page (guest view)"
+  },
+  {
+    "id": "stock-quote",
+    "url": "https://finance.yahoo.com/quote/AAPL",
+    "goal": "read a stock quote page"
   }
 ]
