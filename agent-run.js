@@ -5,7 +5,7 @@
 // included, which is what the model column exists for.
 //
 // Needs on PATH: claude, plus the tool under test (`oc` from
-// @only-cli/oc@beta, lynx, curl). The playwright condition starts the MCP
+// @only-cli/oc, lynx, curl). The playwright condition starts the MCP
 // server via npx. Every run spends real model quota; three tasks and five
 // tools is fifteen agent runs.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';

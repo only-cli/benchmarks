@@ -79,7 +79,7 @@ It runs Claude Code headless (`claude -p`, JSON output) on the tasks in `agent-t
 
 Three methods from the page view table are missing here: browser-use and the two computer use rows. The computer use rows are not tools an agent can call at all, they are a priced screenshot floor, so putting them in a task benchmark means driving a vendor's own computer use loop and reading that API's usage instead. browser-use is a closer call, because it ships an MCP server that Claude Code or Codex can attach exactly like Playwright MCP. The problem is what happens inside it: its content extraction runs its own model (`Error: LLM not initialized (set OPENAI_API_KEY)`), and that spend is invisible to the outer agent's usage JSON, so the token column would report a fraction of what the run actually cost. Restricting it to the primitives that need no model would make it a Playwright MCP clone with the interesting part switched off. Both belong in a table of their own, compared against themselves the way codex is here, and neither is in this one.
 
-Requirements: `claude` on PATH and logged in, `oc` on PATH (`npm install -g @only-cli/oc@beta`), lynx for the lynx condition. Fair warning: every run spends real model quota; eight tasks times five tools is forty agent sessions, a few dollars on Sonnet.
+Requirements: `claude` on PATH and logged in, `oc` on PATH (`npm install -g @only-cli/oc`), lynx for the lynx condition. Fair warning: every run spends real model quota; eight tasks times five tools is forty agent sessions, a few dollars on Sonnet.
 
 Network benchmarks are honest but noisy: they hit live sites, so numbers vary run to run and a site may block or change at any time. Compare orders of magnitude, not single-digit percentages.
 
