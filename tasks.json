@@ -38,5 +38,25 @@
     "id": "subreddit-front",
     "url": "https://old.reddit.com/r/ClaudeAI/",
     "goal": "scan a subreddit front page"
+  },
+  {
+    "id": "video-page",
+    "url": "https://www.youtube.com/watch?v=iG9CE55wbtY",
+    "goal": "read a YouTube video page: title, byline, description, transcript links"
+  },
+  {
+    "id": "aws-cli-ref",
+    "url": "https://docs.aws.amazon.com/cli/latest/reference/s3/cp.html",
+    "goal": "read an AWS CLI reference page: options, examples, output shape"
+  },
+  {
+    "id": "gcloud-ref",
+    "url": "https://docs.cloud.google.com/sdk/gcloud/reference/compute/instances/create",
+    "goal": "read a gcloud reference page with several hundred flags"
+  },
+  {
+    "id": "azure-cli-ref",
+    "url": "https://learn.microsoft.com/en-us/cli/azure/storage/account?view=azure-cli-latest",
+    "goal": "read an Azure CLI reference page: one command group, every subcommand"
   }
 ]

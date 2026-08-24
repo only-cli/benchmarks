@@ -1,0 +1,52 @@
+[
+  {
+    "id": "wiki-ambiguous",
+    "tier": "lookup",
+    "term": "anthropic",
+    "url": "https://en.wikipedia.org/w/index.php?search=anthropic&fulltext=1&ns0=1",
+    "goal": "According to Wikipedia, what kind of organization is Anthropic and where is it headquartered? The word 'anthropic' also titles articles in cosmology and geology, so name the company specifically.",
+    "expect": "public benefit|PBC|San Francisco",
+    "expectNote": "Anthropic, PBC, an American AI public benefit corporation headquartered in San Francisco",
+    "maxTurns": 15
+  },
+  {
+    "id": "wiki-person",
+    "tier": "lookup",
+    "term": "Dario Amodei",
+    "url": "https://en.wikipedia.org/w/index.php?title=Dario%20Amodei&action=render",
+    "goal": "According to Wikipedia, what company did Dario Amodei co-found, in what year, and what is his role there?",
+    "expect": "Anthropic",
+    "expectNote": "co-founded Anthropic in 2021 with Daniela Amodei, is its CEO",
+    "maxTurns": 15
+  },
+  {
+    "id": "wiki-fact-in-long-page",
+    "tier": "lookup",
+    "term": "Eiffel Tower",
+    "url": "https://en.wikipedia.org/w/index.php?title=Eiffel%20Tower&action=render",
+    "goal": "According to Wikipedia, in what year was the Eiffel Tower completed, and how tall is it including antennas?",
+    "expect": "1889",
+    "expectNote": "completed 1889, about 330 m / 1,083 ft tall including antennas",
+    "maxTurns": 15
+  },
+  {
+    "id": "wiki-technical",
+    "tier": "lookup",
+    "term": "Transformer (deep learning architecture)",
+    "url": "https://en.wikipedia.org/w/index.php?title=Transformer%20(deep%20learning%20architecture)&action=render",
+    "goal": "According to Wikipedia, which paper introduced the transformer architecture, and in what year?",
+    "expect": "Attention Is All You Need|attention is all you need",
+    "expectNote": "Attention Is All You Need, 2017",
+    "maxTurns": 15
+  },
+  {
+    "id": "wiki-non-english",
+    "tier": "lookup",
+    "term": "Berlin (German Wikipedia)",
+    "url": "https://de.wikipedia.org/w/index.php?title=Berlin&action=render",
+    "goal": "According to the GERMAN Wikipedia article on Berlin (de.wikipedia.org, not the English one), what is Berlin's population? Report the number the German article gives.",
+    "expect": "3[.,]700[.,]577|3[.,]7\\s*(Mio|Millionen|million)",
+    "expectNote": "3.700.577 as of 31 December 2025, so about 3.7 million",
+    "maxTurns": 15
+  }
+]

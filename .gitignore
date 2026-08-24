@@ -2,6 +2,7 @@ node_modules/
 results/*
 !results/latest.md
 !results/agent-latest.md
+!results/agent-latest-wiki.md
 .playwright-mcp/
 .idea/
 tmp_*

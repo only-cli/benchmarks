@@ -50,5 +50,36 @@
     "url": "https://old.reddit.com/r/ClaudeAI/",
     "goal": "Starting from this subreddit's front page, open the top post's comments and report the post title and the point its top comment makes.",
     "maxTurns": 25
+  },
+  {
+    "id": "youtube-watch",
+    "tier": "single page",
+    "url": "https://www.youtube.com/watch?v=iG9CE55wbtY",
+    "goal": "What is the title of this video, and roughly how many views does it have?"
+  },
+  {
+    "id": "aws-s3-recursive",
+    "tier": "single page",
+    "url": "https://docs.aws.amazon.com/cli/latest/reference/s3/cp.html",
+    "goal": "You are writing a deploy script. From this AWS CLI reference page, which flag makes 'aws s3 cp' copy a directory and everything under it, and what is the full command to copy the local build directory to s3://example-bucket/site/?"
+  },
+  {
+    "id": "gcloud-instance-flags",
+    "tier": "single page",
+    "url": "https://docs.cloud.google.com/sdk/gcloud/reference/compute/instances/create",
+    "goal": "You are writing a provisioning script. From this gcloud reference page, which flags set the machine type and the zone for 'gcloud compute instances create', and what is the full command to create an instance named web-1 as an e2-medium in us-central1-a?"
+  },
+  {
+    "id": "azure-hns-flag",
+    "tier": "single page",
+    "url": "https://learn.microsoft.com/en-us/cli/azure/storage/account?view=azure-cli-latest",
+    "goal": "You are provisioning a Data Lake Storage Gen2 account. From this Azure CLI reference page, which flag of 'az storage account create' turns on the hierarchical namespace?"
+  },
+  {
+    "id": "aws-docs-follow",
+    "tier": "multi step",
+    "url": "https://html.duckduckgo.com/html/?q=site%3Adocs.aws.amazon.com+s3+cp+recursive",
+    "goal": "Starting from this search, open the AWS CLI reference page for 'aws s3 cp' and report the flag that copies a directory recursively, plus the example command the page gives for copying a local directory to a bucket.",
+    "maxTurns": 25
   }
 ]

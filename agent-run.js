@@ -8,11 +8,34 @@
 // @only-cli/oc, lynx, curl). The playwright condition starts the MCP
 // server via npx. Every run spends real model quota; three tasks and five
 // tools is fifteen agent runs.
+//
+// Suites, and how to run them:
+//
+//   node agent-run.js                          browse suite via claude -p
+//   AGENT_CLI=codex node agent-run.js          browse suite via codex exec
+//   node agent-run.js --suite=wiki             wiki suite via claude -p
+//   AGENT_CLI=codex node agent-run.js --suite=wiki   wiki suite via codex exec
+//
+// The wiki suite lines the oc Wikipedia shortcut up against the two web tools
+// Claude Code ships with, so it is the one suite where the conditions are
+// built in tools rather than shell commands. Under codex the webfetch
+// condition is skipped: codex has no fetch-one-url-through-a-model tool, and
+// its own web search stands in for WebSearch via `-c tools.web_search=true`.
+// The oc under test is whatever `oc` resolves to on PATH, so to measure an
+// unreleased shortcut, put a shim earlier in PATH:
+//
+//   printf '#!/bin/sh\nexec node /path/to/oc/src/cli.js "$@"\n' > bin/oc
+//   chmod +x bin/oc && PATH="$PWD/bin:$PATH" node agent-run.js --suite=wiki
+//
+// Useful flags either way: --tools=oc-wiki,websearch to narrow the conditions,
+// --only=wiki-person to rerun one task into the saved run, --report-only to
+// re-render the tables from the last saved JSON without spending a session.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const tasks = JSON.parse(readFileSync(new URL('./agent-tasks.json', import.meta.url), 'utf8'));
+// Loaded after the suite is resolved; see SUITES below.
+let tasks = [];
 // AGENT_CLI=codex runs the same conditions through `codex exec` (OpenAI Codex
 // CLI) instead of `claude -p`; results land in agent-latest-codex.{json,md}.
 const AGENT = process.env.AGENT_CLI ?? 'claude';
@@ -79,6 +102,59 @@ const CONDITIONS = [
   },
 ];
 
+// The wiki suite compares the oc Wikipedia shortcut against the two web tools
+// Claude Code ships with, so its conditions are the built in WebFetch and
+// WebSearch rather than the shell readers the browse suite lines up. It runs
+// on its own task file and its own conditions; `node agent-run.js` with no
+// flags still runs the browse suite exactly as before.
+const WIKI_CONDITIONS = [
+  {
+    name: 'oc-wiki',
+    usage: 'the `oc` commands in Bash, including its Wikipedia shortcuts: '
+      + '`oc wiki search <query>`, `oc wiki article <title>`, `oc wiki lang <code> <title>`, '
+      + 'plus `oc do <n>`, `oc find <query>`, `oc read <n>`, `oc next`, and `oc raw`',
+    skill: 'browse-oc-wiki',
+    allowed: ['Bash(oc:*)'],
+  },
+  {
+    name: 'webfetch',
+    usage: 'the built in WebFetch tool, one url and a prompt per call',
+    skill: 'browse-webfetch',
+    allowed: ['WebFetch'],
+    // Every condition is one web tool only, so each names the others it must
+    // not reach for instead of sharing one blanket list.
+    disallowed: 'WebSearch,Task,TodoWrite',
+    // codex ships no fetch-one-url-through-a-model tool, and standing in curl
+    // would measure a different thing under the same name, so this condition
+    // is skipped rather than approximated when AGENT_CLI=codex.
+    claudeOnly: true,
+  },
+  {
+    name: 'websearch',
+    usage: 'the built in WebSearch tool, which returns search result snippets',
+    skill: 'browse-websearch',
+    allowed: ['WebSearch'],
+    disallowed: 'WebFetch,Task,TodoWrite',
+    // codex's own web search, the nearest equivalent to WebSearch. It is off
+    // by default, so the condition turns it on for its runs only.
+    codexArgs: ['-c', 'tools.web_search=true'],
+  },
+];
+
+// A suite is a task file plus the conditions worth putting on it, plus the
+// name its results are saved under.
+const SUITES = {
+  browse: { tasks: 'agent-tasks.json', conditions: CONDITIONS, out: '' },
+  wiki: { tasks: 'wiki-tasks.json', conditions: WIKI_CONDITIONS, out: '-wiki' },
+};
+const SUITE = process.argv.find((a) => a.startsWith('--suite='))?.slice('--suite='.length) ?? 'browse';
+if (!SUITES[SUITE]) {
+  console.error(`unknown suite '${SUITE}', one of: ${Object.keys(SUITES).join(', ')}`);
+  process.exit(1);
+}
+const suite = SUITES[SUITE];
+tasks = JSON.parse(readFileSync(new URL(`./${suite.tasks}`, import.meta.url), 'utf8'));
+
 // Sessions run back to back, which on a task like a GitHub search means five
 // tools hitting the same endpoint from one IP inside a minute. GAP_MS paces
 // them so a rate limit does not land on the benchmark rather than the tool.
@@ -97,6 +173,7 @@ function runCodex(cond, prompt) {
   const args = ['exec', '--json', '--skip-git-repo-check', '--ephemeral', '--approve-for-me',
     '-c', 'sandbox_workspace_write.network_access=true'];
   if (process.env.AGENT_MODEL) args.push('-m', process.env.AGENT_MODEL);
+  if (cond.codexArgs) args.push(...cond.codexArgs);
   if (cond.mcp) {
     args.push(
       '-c', 'mcp_servers.playwright.command="npx"',
@@ -154,10 +231,19 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only='))?.slice('--only='
 // of the row for that task is still good and shouldn't be re-spent.
 const TOOLS = (process.argv.find((a) => a.startsWith('--tools='))?.slice('--tools='.length) ?? '')
   .split(',').filter(Boolean);
-const activeConditions = TOOLS.length ? CONDITIONS.filter((c) => TOOLS.includes(c.name)) : CONDITIONS;
+let activeConditions = TOOLS.length
+  ? suite.conditions.filter((c) => TOOLS.includes(c.name))
+  : suite.conditions;
+if (AGENT === 'codex') {
+  const skipped = activeConditions.filter((c) => c.claudeOnly);
+  for (const c of skipped) {
+    console.error(`skipping ${c.name}: no codex equivalent, claude only`);
+  }
+  activeConditions = activeConditions.filter((c) => !c.claudeOnly);
+}
 
 const saved = () =>
-  JSON.parse(readFileSync(new URL(`./results/agent-latest${SUFFIX}.json`, import.meta.url), 'utf8'));
+  JSON.parse(readFileSync(new URL(`./results/agent-latest${suite.out}${SUFFIX}.json`, import.meta.url), 'utf8'));
 const results = REPORT_ONLY ? saved()
   : ONLY.length ? saved().filter((r) => !(ONLY.includes(r.task) && activeConditions.some((c) => c.name === r.tool)))
   : [];
@@ -181,7 +267,7 @@ for (const task of queue) {
         '--output-format', 'json',
         '--model', MODEL,
         '--max-turns', String(turnCap),
-        '--disallowedTools', 'WebFetch,WebSearch,Task,TodoWrite',
+        '--disallowedTools', cond.disallowed ?? 'WebFetch,WebSearch,Task,TodoWrite',
         '--allowedTools', [...cond.allowed, `Skill(${cond.skill})`].join(','),
         ...(cond.extraArgs ?? []),
       ], {
@@ -196,6 +282,12 @@ for (const task of queue) {
     }
     const ms = Math.round(performance.now() - t0);
     let row = { task: task.id, tool: cond.name, agent: AGENT, model: AGENT === 'codex' ? CODEX_MODEL : MODEL, ok: false, ms };
+    // ok only says the agent answered. A task may also carry `expect`, a
+    // regex for the fact a right answer has to contain, so a confident wrong
+    // answer scores as wrong instead of as a success.
+    const grade = (answer) => (task.expect
+      ? new RegExp(task.expect, 'i').test(answer ?? '')
+      : null);
     try {
       if (AGENT === 'codex') {
         const parsed = parseCodex(proc.stdout ?? '');
@@ -208,6 +300,7 @@ for (const task of queue) {
             + parsed.breakdown.cacheRead + parsed.breakdown.cacheCreation,
           tokenBreakdown: parsed.breakdown,
           answer: parsed.answer,
+          correct: grade(parsed.answer),
         };
       } else {
         // claude may print warnings before the JSON; parse from the first brace.
@@ -233,6 +326,7 @@ for (const task of queue) {
           tokenBreakdown: breakdown,
           costUSD: res.total_cost_usd,
           answer: (res.result ?? '').replace(/\s+/g, ' ').trim(),
+          correct: grade(res.result),
         };
       }
     } catch (err) {
@@ -246,24 +340,31 @@ for (const task of queue) {
 
 // Merged reruns arrive at the end of the array; put every row back in task
 // then tool order so the table reads the same however the run was assembled.
-const order = (r) => tasks.findIndex((t) => t.id === r.task) * 100 + CONDITIONS.findIndex((c) => c.name === r.tool);
+const order = (r) => tasks.findIndex((t) => t.id === r.task) * 100
+  + suite.conditions.findIndex((c) => c.name === r.tool);
 results.sort((a, b) => order(a) - order(b));
 
 const lines = [];
 const out = (l) => { lines.push(l); console.log(l); };
 
-out('| task | tool | model | ok | turns | in | out | cache read | cache write | total tokens | cost USD | s | answer |');
-out('| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |');
+// Only a suite whose tasks carry `expect` grows the correct columns, so an
+// ungraded suite's report keeps exactly the shape it had before grading.
+const GRADED = tasks.some((t) => t.expect);
+const col = (text) => (GRADED ? text : '');
+
+out('| task | tool | model | ok |' + col(' correct |') + ' turns | in | out | cache read | cache write | total tokens | cost USD | s | answer |');
+out('| --- | --- | --- | --- |' + col(' --- |') + ' ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |');
 for (const r of results) {
   const answer = r.error ? `error: ${r.error}` : (r.answer ?? '').slice(0, 80);
   const b = r.tokenBreakdown ?? {};
-  out(`| ${r.task} | ${r.tool} | ${r.model} | ${r.ok ? 'yes' : 'NO'} | ${r.turns ?? ''} `
+  const correct = r.correct == null ? '' : r.correct ? 'yes' : 'NO';
+  out(`| ${r.task} | ${r.tool} | ${r.model} | ${r.ok ? 'yes' : 'NO'} |${col(` ${correct} |`)} ${r.turns ?? ''} `
     + `| ${b.input ?? ''} | ${b.output ?? ''} | ${b.cacheRead ?? ''} | ${b.cacheCreation ?? ''} `
     + `| ${r.tokens ?? ''} | ${r.costUSD?.toFixed(4) ?? ''} | ${Math.round(r.ms / 1000)} | ${answer} |`);
 }
 
 out('\n### Summary');
-const sums = CONDITIONS.map((cond) => {
+const sums = suite.conditions.map((cond) => {
   const rows = results.filter((r) => r.tool === cond.name);
   const okRows = rows.filter((r) => r.ok);
   return {
@@ -271,7 +372,12 @@ const sums = CONDITIONS.map((cond) => {
     model: rows[0]?.model ?? MODEL,
     ok: okRows.length,
     total: rows.length,
-    full: okRows.length === rows.length,
+    correct: rows.filter((r) => r.correct).length,
+    graded: rows.filter((r) => r.correct != null).length,
+    // Cheapest only counts when the answers were also right, so a tool cannot
+    // win the token column by answering fast and wrong.
+    full: okRows.length === rows.length
+      && rows.every((r) => r.correct == null || r.correct),
     turns: rows.reduce((sum, r) => sum + (r.turns ?? 0), 0),
     tokens: okRows.reduce((sum, r) => sum + (r.tokens ?? 0), 0),
     outTokens: okRows.reduce((sum, r) => sum + (r.tokenBreakdown?.output ?? 0), 0),
@@ -286,17 +392,22 @@ const full = sums.filter((s) => s.full);
 const best = Object.fromEntries(['turns', 'tokens', 'outTokens', 'cost', 'avgS']
   .map((key) => [key, Math.min(...full.map((s) => s[key]))]));
 const mark = (s, key, text) => `${text}${s.full && s[key] === best[key] ? ' ✅' : ''}`;
-out('| tool | model | success | turns | output tokens | total tokens | total cost USD | avg s |');
-out('| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |');
+out('| tool | model | success |' + col(' correct |') + ' turns | output tokens | total tokens | total cost USD | avg s |');
+out('| --- | --- | ---: |' + col(' ---: |') + ' ---: | ---: | ---: | ---: | ---: |');
 for (const s of sums) {
   // codex on a ChatGPT plan reports no per-run cost; leave the cell empty
   // rather than printing a zero that looks like a measurement.
   const cost = s.hasCost ? mark(s, 'cost', s.cost.toFixed(4)) : '';
+  const correct = s.graded ? `${s.correct}/${s.graded}${s.correct === s.graded ? ' ✅' : ''}` : '';
   out(`| ${s.name} | ${s.model} | ${s.full ? `${s.ok}/${s.total} ✅` : `${s.ok}/${s.total}`} `
-    + `| ${mark(s, 'turns', s.turns)} | ${mark(s, 'outTokens', s.outTokens)} | ${mark(s, 'tokens', s.tokens)} `
+    + `|${col(` ${correct} |`)}`
+    + ` ${mark(s, 'turns', s.turns)} | ${mark(s, 'outTokens', s.outTokens)} | ${mark(s, 'tokens', s.tokens)} `
     + `| ${cost} | ${mark(s, 'avgS', s.avgS)} |`);
 }
-out('\nTurns count every run, failures included; token and cost totals count successes only. The ✅ marks the best value in each column among tools that finished every task.');
+out('\nTurns count every run, failures included; token and cost totals count successes only. '
+  + (GRADED ? 'The correct column grades the answer against the fact the task asked for. ' : '')
+  + 'The ✅ marks the best value in each column among tools that '
+  + (GRADED ? 'answered every task correctly.' : 'finished every task.'));
 
 // Tasks come in two tiers: read one page, or navigate to a second page and
 // read that. Splitting the totals shows how each tool scales per extra hop,
@@ -324,7 +435,7 @@ if (TIERS.length > 1) {
 // across all tasks, failed runs included, since those tokens were spent too.
 out('\n### What each tool actually cost, failures included');
 out('```');
-const chart = CONDITIONS.map((cond) => {
+const chart = suite.conditions.map((cond) => {
   const rows = results.filter((r) => r.tool === cond.name);
   return {
     name: cond.name,
@@ -342,6 +453,6 @@ for (const c of chart) {
 out('```');
 
 mkdirSync(new URL('./results/', import.meta.url), { recursive: true });
-writeFileSync(new URL(`./results/agent-latest${SUFFIX}.json`, import.meta.url), JSON.stringify(results, null, 2));
-writeFileSync(new URL(`./results/agent-latest${SUFFIX}.md`, import.meta.url), lines.join('\n') + '\n');
-console.error(`written to results/agent-latest${SUFFIX}.json`);
+writeFileSync(new URL(`./results/agent-latest${suite.out}${SUFFIX}.json`, import.meta.url), JSON.stringify(results, null, 2));
+writeFileSync(new URL(`./results/agent-latest${suite.out}${SUFFIX}.md`, import.meta.url), lines.join('\n') + '\n');
+console.error(`written to results/agent-latest${suite.out}${SUFFIX}.json`);
