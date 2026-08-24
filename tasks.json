@@ -58,5 +58,20 @@
     "id": "azure-cli-ref",
     "url": "https://learn.microsoft.com/en-us/cli/azure/storage/account?view=azure-cli-latest",
     "goal": "read an Azure CLI reference page: one command group, every subcommand"
+  },
+  {
+    "id": "python-lib-ref",
+    "url": "https://docs.python.org/3/library/json.html",
+    "goal": "read a Python standard library reference page: functions, examples, notes"
+  },
+  {
+    "id": "mdn-js-ref",
+    "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map",
+    "goal": "read an MDN JavaScript reference page: syntax, parameters, examples"
+  },
+  {
+    "id": "node-api-ref",
+    "url": "https://nodejs.org/api/fs.html",
+    "goal": "read the Node.js fs module page, one of the longest single-page API docs"
   }
 ]

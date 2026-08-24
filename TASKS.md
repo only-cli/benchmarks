@@ -1,10 +1,10 @@
 # Benchmark tasks
 
-Every number in this repo comes from these twenty-five tasks against live websites. They are listed here so anyone can check that the benchmark is not a set of best cases for oc, and so anyone adding a task knows what a good one looks like.
+Every number in this repo comes from these twenty-eight tasks against live websites. They are listed here so anyone can check that the benchmark is not a set of best cases for oc, and so anyone adding a task knows what a good one looks like.
 
 There are two suites, because there are two questions.
 
-- `tasks.json` drives `run.js`, which asks what a method hands an agent for one page view. Eleven methods, twelve pages.
+- `tasks.json` drives `run.js`, which asks what a method hands an agent for one page view. Eleven methods, fifteen pages.
 - `agent-tasks.json` drives `agent-run.js`, which asks what a whole task costs when a real agent does it with one tool. Five tools, thirteen tasks, run once through Claude Code and once through Codex.
 
 ## What earns a task its place
@@ -17,7 +17,7 @@ There are two suites, because there are two questions.
 
 ## Page view suite (`tasks.json`)
 
-Twelve pages, chosen to span the range from trivial to hostile. Token counts below are from the run recorded in [results/latest.md](results/latest.md), which covers all twelve. Lynx (2.9.0) is in the run too; its one failure, on the DuckDuckGo search task, is a real block and recorded as such.
+Fifteen pages, chosen to span the range from trivial to hostile. Token counts below are from the run recorded in [results/latest.md](results/latest.md), which covers all fifteen. Lynx (2.9.0) is in the run too; its one failure, on the DuckDuckGo search task, is a real block and recorded as such.
 
 | id | page | what it exercises |
 | --- | --- | --- |
@@ -33,32 +33,38 @@ Twelve pages, chosen to span the range from trivial to hostile. Token counts bel
 | `aws-cli-ref` | the `aws s3 cp` reference page | a mid sized CLI reference: options, then a long tail of worked examples |
 | `gcloud-ref` | the `gcloud compute instances create` reference page | the extreme of the genre, several hundred flags in one document |
 | `azure-cli-ref` | the `az storage account` reference page | one command group listing every subcommand and every flag of each |
+| `python-lib-ref` | the Python `json` module reference | a standard library reference page: functions, examples, notes |
+| `mdn-js-ref` | MDN's `Array.prototype.map` reference | a modern docs site: syntax, parameters, examples, compatibility tables |
+| `node-api-ref` | the Node.js `fs` module page | one of the longest single page API documents on the web |
 
-The last three are the coding lookup case. An agent writing a deploy or provisioning script goes to a cloud CLI reference page for one flag, and that flag is buried in a document that costs 18,000 to 132,000 tokens to fetch whole. It is a good stress case precisely because it is not a page anyone reads end to end.
+The cloud CLI pages are the coding lookup case. An agent writing a deploy or provisioning script goes to a cloud CLI reference page for one flag, and that flag is buried in a document that costs 18,000 to 132,000 tokens to fetch whole. It is a good stress case precisely because it is not a page anyone reads end to end. The three language documentation pages extend the same case to everyday programming lookups, and they went in alongside oc's `py`, `mdn`, and `node` shortcuts. The Node.js `fs` page is the heaviest document in the suite: one page, 273,820 tokens fetched raw.
 
 What each one showed, in tokens per page view:
 
 - **simple-page**: 42 for `oc open`, 140 for raw fetch, 47 for lynx. Everything is cheap when the page is empty, except the screenshot floors: 1,049 tokens for Claude computer use and 765 for OpenAI computer use, since an image of a nearly blank page still costs a full image.
-- **news-front**: 1,134 for `oc open` against 8,646 raw and 12,306 for a Playwright accessibility snapshot. This is the shape of a page where distillation pays.
-- **discussion**: 461 for `oc open` against 52,866 raw. Three of the small numbers here are failures wearing a success badge: Jina Reader's 295 is Reddit's block page ("whoa there, pardner!", a 403 to its crawler wrapped in a 200), Playwright MCP's 207 is a blocked snapshot, and browser-use's 39 is a state message with almost no page in it.
-- **search-results**: 750 for `oc open` against 8,291 raw. Lynx was the one outright failure here, blocked with zero usable output, and raw fetch has come back as DuckDuckGo's challenge page (HTTP 202, visible in the status column) on other runs of this task.
-- **repo-search**: 1,472 for `oc open` against 67,731 raw and 67,805 for Selenium's rendered HTML.
-- **company-page**: 1,490 for `oc open` against 42,975 raw. browser-use's 390 is again a nearly empty state message.
-- **stock-quote**: 456 for `oc open` against 371,597 raw and 400,816 for Selenium. Jina Reader failed the page outright, its one hard failure in the run. The heaviest page in the suite by far, and the widest spread.
-- **subreddit-front**: 1,541 for `oc open` against 41,403 raw, with the same three block pages as the thread task: Jina Reader 283, Playwright MCP 184, browser-use 39.
-- **video-page**: 684 for `oc open` against 338,815 raw and 374,759 for Playwright's rendered HTML. Playwright MCP's 502 and browser-use's 482 are the visible DOM only, which is the part of a watch page that does not carry the description or the caption links.
+- **news-front**: 1,154 for `oc open` against 8,698 raw and 12,362 for a Playwright accessibility snapshot. This is the shape of a page where distillation pays.
+- **discussion**: 461 for `oc open` against 52,856 raw. Three of the small numbers here are failures wearing a success badge: Jina Reader's 295 is Reddit's block page ("whoa there, pardner!", a 403 to its crawler wrapped in a 200), Playwright MCP's 207 is a blocked snapshot, and browser-use's 39 is a state message with almost no page in it.
+- **search-results**: 750 for `oc open` against 10,141 raw. Lynx was the one outright failure here, blocked with zero usable output, and raw fetch has come back as DuckDuckGo's challenge page (HTTP 202, visible in the status column) on other runs of this task.
+- **repo-search**: 1,471 for `oc open` against 67,726 raw and 67,803 for Selenium's rendered HTML.
+- **company-page**: 1,490 for `oc open` against 39,315 raw. browser-use's 404 is again a nearly empty state message, and Jina Reader failed the page outright, its one hard failure in the run.
+- **stock-quote**: 456 for `oc open` against 375,721 raw and 389,465 for Selenium. Jina Reader failed this page in the previous run; this time it read it, for 15,714. The heaviest page in the suite by far, and the widest spread.
+- **subreddit-front**: 1,556 for `oc open` against 41,526 raw, with the same three block pages as the thread task: Jina Reader 283, Playwright MCP 184, browser-use 39.
+- **video-page**: 684 for `oc open` against 342,730 raw and 377,236 for Playwright's rendered HTML. Playwright MCP's 502 and browser-use's 485 are the visible DOM only, which is the part of a watch page that does not carry the description or the caption links.
 - **aws-cli-ref**: 502 for `oc open` against 17,990 raw. The whole distilled page is 6,474 (`oc raw`), so the first view is the top slice of a document with 257 blocks still behind it.
-- **gcloud-ref**: 488 for `oc open` against 132,553 raw, 46,186 for the whole distilled page, and 31,703 for Jina Reader. 1,467 blocks are still unread after the first view, and browser-use timed out on the page after three minutes, its one failure in the run.
-- **azure-cli-ref**: 467 for `oc open` against 100,142 raw and 137,235 for Selenium's rendered HTML, with 2,891 blocks left over.
+- **gcloud-ref**: 488 for `oc open` against 132,545 raw, 46,186 for the whole distilled page, and 31,584 for Jina Reader. 1,467 blocks are still unread after the first view. browser-use timed out on this page after three minutes in the previous run; this run it came back normally.
+- **azure-cli-ref**: 467 for `oc open` against 100,142 raw and 161,492 for Selenium's rendered HTML, with 2,891 blocks left over.
+- **python-lib-ref**: 496 for `oc open` against 27,940 raw. The whole distilled page is 9,019, and Jina Reader (9,060) and lynx (10,330) land in the same band, so this page separates first-view tools from whole-page tools more than it separates readers.
+- **mdn-js-ref**: 481 for `oc open` against 44,501 raw. Jina Reader's 2,530 is its best showing on any documentation page here; MDN's markup is unusually clean under the chrome.
+- **node-api-ref**: 475 for `oc open` against 273,820 raw, 269,757 for Playwright MCP's accessibility snapshot, and 119,604 for lynx. Even the whole distilled page is 112,890 tokens, so this is a page to `find` and `read` through, never to hand over whole.
 
-Those last three first-view numbers are the clearest case in the suite for reading the answer column rather than the token column. **On none of the three pages does the first `oc open` view contain the flag the task asks for.** The page is far past the budget, so what prints is the opening slice plus a pointer to the rest, and the agent has to spend a second command. Measured on the same pages, `oc find` is the cheap way through: 314 tokens to land on `--recursive` in the AWS page (820 in total), 203 tokens to land on `--enable-hierarchical-namespace` in the Azure page (670 in total), and 84 tokens on the gcloud page. Reading those totals next to raw fetch's 17,990 and 132,553 is the honest comparison; reading 488 next to 132,553 is not.
+The cloud reference first-view numbers are the clearest case in the suite for reading the answer column rather than the token column. **On none of the three pages does the first `oc open` view contain the flag the task asks for.** The page is far past the budget, so what prints is the opening slice plus a pointer to the rest, and the agent has to spend a second command. Measured on the same pages, `oc find` is the cheap way through: 314 tokens to land on `--recursive` in the AWS page (820 in total), 203 tokens to land on `--enable-hierarchical-namespace` in the Azure page (670 in total), and 84 tokens on the gcloud page. Reading those totals next to raw fetch's 17,990 and 132,553 is the honest comparison; reading 488 next to 132,545 is not.
 
 Two limits turned up while checking these pages, both worth knowing before trusting a run:
 
 - `oc find` cannot search for a string that starts with a dash, which on a CLI reference page is most of what you would want to search for. `oc find -- "--machine-type"` is parsed as flags, not as a query. Searching for `machine-type` without the leading dashes works.
 - On `azure-cli-ref`, the block numbers `oc find` prints do not match the ones `oc read` takes: `find` reports `--enable-hierarchical-namespace` at `[144]`, and `read 144` returns an unrelated paragraph about account level immutability. The same sequence lines up correctly on `aws-cli-ref`, so it is page shape dependent rather than always wrong.
 
-One more thing to know when comparing against older recorded runs: several `oc open` numbers here are larger than the ones in the committed run from 0.2.0-beta.1 (news-front 422 then, 1,134 now; repo-search 441 then, 1,472 now). The pages did not grow. oc now prints a page whole when it would finish within about four times the budget, so a page that fits trades a bigger first view for never needing a second command. Every number that grew is under 2,000 tokens, which is four times the default budget of 500, and every page too large for that rule still renders near 500.
+One more thing to know when comparing against older recorded runs: several `oc open` numbers here are larger than the ones in the committed run from 0.2.0-beta.1 (news-front 422 then, 1,154 now; repo-search 441 then, 1,471 now). The pages did not grow. oc now prints a page whole when it would finish within about four times the budget, so a page that fits trades a bigger first view for never needing a second command. Every number that grew is under 2,000 tokens, which is four times the default budget of 500, and every page too large for that rule still renders near 500.
 
 ## Agent task suite (`agent-tasks.json`)
 

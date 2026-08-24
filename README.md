@@ -109,27 +109,27 @@ chmod +x bin/oc && PATH="$PWD/bin:$PATH" node agent-run.js --suite=wiki
 
 ## Latest results
 
-only-cli 0.4.0, Node 22, run on 2026-08-24 against live sites. The suite has grown from six tasks to twelve since the last recorded run, adding a stock quote page, a subreddit front page, a YouTube watch page, and three cloud CLI reference pages, so totals are not comparable to earlier tables. Full per-task rows are in [results/latest.md](results/latest.md).
+only-cli 0.4.0, Node 22, run on 2026-08-24 against live sites. The suite has grown from six tasks to fifteen since the last recorded run, adding a stock quote page, a subreddit front page, a YouTube watch page, three cloud CLI reference pages, and three language documentation pages (Python's `json` module, MDN's `Array.prototype.map`, Node's `fs` module), so totals are not comparable to earlier tables. All fifteen pages were fetched in one run. Full per-task rows are in [results/latest.md](results/latest.md).
 
 | adapter | model | success | total tokens | avg ms | avg fetch ms | total KB |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| oc-open | none | 12/12 | 9487 | 669 | 462 | 4386 |
-| oc-raw | none | 12/12 | 128363 | 767 | 516 | 4414 |
-| raw-fetch | none | 12/12 | 1183149 | 425 | 425 | 4623 |
-| jina-reader | none | 11/12 | 90929 | 2059 | 2236 | 355 |
-| lynx-dump | none | 11/12 | 137005 | 474 | 462 | 0 |
-| playwright-mcp | none | 12/12 | 207753 | 728 | 727 | 0 |
-| browser-use | none | 11/12 | 18544 | 17612 | 1129 | 0 |
-| playwright-html | none | 12/12 | 1234167 | 1053 | 538 | 4822 |
-| selenium-html | none | 12/12 | 1271285 | 1544 | 731 | 4967 |
-| claude-computer-use | none | 12/12 | 12588 | 1083 | 598 | 1505 |
-| openai-computer-use | none | 12/12 | 9180 | 0 | 598 | 1505 |
+| oc-open | none | 15/15 | 10973 | 707 | 490 | 5749 |
+| oc-raw | none | 15/15 | 257347 | 666 | 380 | 5768 |
+| raw-fetch | none | 15/15 | 1535791 | 303 | 303 | 6002 |
+| jina-reader | none | 14/15 | 170505 | 5107 | 5464 | 668 |
+| lynx-dump | none | 14/15 | 276736 | 445 | 434 | 0 |
+| playwright-mcp | none | 15/15 | 531703 | 1066 | 1065 | 0 |
+| browser-use | none | 15/15 | 28034 | 3112 | 1349 | 0 |
+| playwright-html | none | 15/15 | 1559184 | 1038 | 518 | 6092 |
+| selenium-html | none | 15/15 | 1626740 | 1529 | 700 | 6356 |
+| claude-computer-use | none | 15/15 | 15735 | 1060 | 571 | 1792 |
+| openai-computer-use | none | 15/15 | 11475 | 0 | 571 | 1792 |
 
-oc-open reads all twelve pages for 9,487 tokens, 125x fewer than raw HTML. The only rows in its neighborhood are floors, not reads: the computer-use rows price a single 1024x768 screenshot per page, one look at the top before any scrolling, which is why the OpenAI row is nominally smaller, and browser-use's state message carries indexed elements but drops most page text. Among methods that actually deliver the page content, the gap is about 10x to Jina Reader and 22x to Playwright MCP's accessibility snapshot, and the rendered-HTML routes (Playwright, Selenium) cost slightly more than raw fetch plus a browser.
+oc-open reads all fifteen pages for 10,973 tokens, 140x fewer than raw HTML. The only rows in its neighborhood are floors, not reads: the computer-use rows price a single 1024x768 screenshot per page, one look at the top before any scrolling, which is why the OpenAI row is nominally smaller, and browser-use's state message carries indexed elements but drops most page text. Among methods that actually deliver the page content, the gap is about 15x to Jina Reader and 48x to Playwright MCP's accessibility snapshot, and the rendered-HTML routes (Playwright, Selenium) cost slightly more than raw fetch plus a browser.
 
-The failure and status columns earned their keep. Lynx got blocked outright on the DuckDuckGo search task, and Jina Reader failed the Yahoo Finance quote page, the heaviest in the suite. Some of the smallest numbers in the per-task rows are blocks wearing a success badge: Jina's 295 and 283 token Reddit "results" are Reddit's block page ("whoa there, pardner!", a 403 to its crawler wrapped in a 200), Playwright MCP's 207 and 184 token Reddit snapshots are blocked pages too, and browser-use came back from both Reddit tasks nearly empty before timing out entirely on the gcloud reference page after three minutes. oc, riding its Chrome-impersonated client, was the only distilling reader that returned real content on all twelve tasks.
+The failure and status columns earned their keep. Lynx got blocked outright on the DuckDuckGo search task, and Jina Reader failed the LinkedIn company page; in the previous run it was the Yahoo Finance quote page it dropped, so its one failure moves around rather than going away. Some of the smallest numbers in the per-task rows are blocks wearing a success badge: Jina's 295 and 283 token Reddit "results" are Reddit's block page ("whoa there, pardner!", a 403 to its crawler wrapped in a 200), Playwright MCP's 207 and 184 token Reddit snapshots are blocked pages too, and browser-use came back from both Reddit tasks nearly empty. oc, riding its Chrome-impersonated client, was the only distilling reader that returned real content on all fifteen tasks.
 
-One number to read carefully: oc-open's per-page views are larger than in the 0.2.0-beta.1 run (news-front 422 then, 1,134 now) because oc now prints a page whole when it would finish within about four times the budget, trading a bigger first view for never needing a second command. Every page too large for that rule still renders near the 500 token budget; the three cloud reference pages come in at 502, 488, and 467 against 17,990 to 132,553 raw.
+One number to read carefully: oc-open's per-page views are larger than in the 0.2.0-beta.1 run (news-front 422 then, 1,134 now) because oc now prints a page whole when it would finish within about four times the budget, trading a bigger first view for never needing a second command. Every page too large for that rule still renders near the 500 token budget; the three cloud reference pages come in at 502, 488, and 467 against 17,990 to 132,545 raw, and the three language documentation pages at 496, 481, and 475 against 27,940 to 273,820 raw. The Node.js `fs` page is the starkest single number in the suite: 273,820 tokens fetched raw, 475 through oc's first view, and even lynx needs 119,604 for it.
 
 ### Latest agent results
 
