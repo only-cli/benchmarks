@@ -175,35 +175,35 @@ Two honesty notes on the absolute numbers. Every total includes Claude Code's ow
 
 ### The same tasks through codex
 
-`AGENT_CLI=codex node agent-run.js` runs the identical six tasks through `codex exec`, the OpenAI Codex CLI's answer to `claude -p`, reading token usage from its `--json` event stream into [results/agent-latest-codex.md](results/agent-latest-codex.md). Codex differences: no allowed-tools equivalent, so the one-tool restriction is prompt-only; it cannot load claude skills, so the same skill body rides along in the prompt; no per-run cost on a ChatGPT plan; no turn cap; and its turns count completed tool calls and messages, since codex reports one turn per session however much happens inside it.
+`AGENT_CLI=codex node agent-run.js` runs the identical thirteen tasks through `codex exec`, the OpenAI Codex CLI's answer to `claude -p`, reading token usage from its `--json` event stream into [results/agent-latest-codex.md](results/agent-latest-codex.md). This table is from a 2026-08-24 run with oc 0.4.0, codex 0.148.0, and `gpt-5.6-sol` at xhigh reasoning effort. Codex differences: no allowed-tools equivalent, so the one-tool restriction is prompt-only; it cannot load claude skills, so the same skill body rides along in the prompt; no per-run cost on a ChatGPT plan; no turn cap; and its turns count completed tool calls and messages, since codex reports one turn per session however much happens inside it.
 
 | tool | model | success | turns | output tokens | total tokens | avg s |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| oc | gpt-5.6-sol | 6/6 ✅ | 20 | 1904 | 287862 | 16 |
-| raw-curl | gpt-5.6-sol | 6/6 ✅ | 21 | 2985 | 394156 | 20 |
-| lynx | gpt-5.6-sol | 6/6 ✅ | 21 | 2968 | 408548 | 20 |
-| jina-reader | gpt-5.6-sol | 6/6 ✅ | 18 ✅ | 1727 ✅ | 285315 ✅ | 14 ✅ |
-| playwright-mcp | gpt-5.6-sol | 6/6 ✅ | 52 | 5761 | 1205046 | 64 |
+| oc | gpt-5.6-sol | 13/13 | 68 | 9,606 | 1,092,207 | 31 |
+| raw-curl | gpt-5.6-sol | 13/13 | 60 | 9,281 | 1,585,812 | 24 |
+| lynx | gpt-5.6-sol | 13/13 | 49 | 5,280 | 707,216 | 17 |
+| jina-reader | gpt-5.6-sol | 13/13 | 59 | 6,321 | 1,016,427 | 29 |
+| playwright-mcp | gpt-5.6-sol | 13/13 | 57 | 5,826 | 1,070,006 | 28 |
 
 ```
-oc             ##########                                 287,862 tokens  20 turns
-raw-curl       #############                              394,156 tokens  21 turns
-lynx           ##############                             408,548 tokens  21 turns
-jina-reader    #########                                  285,315 tokens  18 turns
-playwright-mcp ########################################  1,205,046 tokens  52 turns
+oc             ###########################               1,092,207 tokens  68 turns
+raw-curl       ########################################  1,585,812 tokens  60 turns
+lynx           ##################                          707,216 tokens  49 turns
+jina-reader    ##########################                1,016,427 tokens  59 turns
+playwright-mcp ###########################               1,070,006 tokens  57 turns
 ```
 
 | tool | single page tokens | single page turns | multi step tokens | multi step turns |
 | --- | ---: | ---: | ---: | ---: |
-| oc | 96,018 | 7 | 191,844 | 13 |
-| raw-curl | 188,351 | 10 | 205,805 | 11 |
-| lynx | 230,247 | 10 | 178,301 | 11 |
-| jina-reader | 92,174 | 7 | 193,141 | 11 |
-| playwright-mcp | 854,163 | 35 | 350,883 | 17 |
+| oc | 379,157 | 29 | 713,050 | 39 |
+| raw-curl | 380,618 | 28 | 1,205,194 | 32 |
+| lynx | 403,676 | 31 | 303,540 | 18 |
+| jina-reader | 736,286 | 41 | 280,141 | 18 |
+| playwright-mcp | 637,801 | 35 | 432,205 | 22 |
 
-Read the success column carefully here, because six out of six is not what it looks like. Nothing errored, so every tool "finished", but four of those thirty answers are a polite report that the site refused the tool: Reddit blocked raw curl and Jina Reader, and DuckDuckGo showed raw curl and the Playwright browser a bot challenge. Counting only runs that returned the actual content, oc and lynx answered all six, Jina Reader and Playwright MCP five, raw curl four. Among the two that delivered everything, oc costs 287,862 tokens against lynx's 408,548, and Jina Reader's headline win includes a Reddit task it never read. Jina is also the only tool here that routes browsing through a third party: every URL the agent reads is sent to Jina's servers, while every other condition talks only to the target site.
+Read the success column carefully here, because thirteen out of thirteen is not what it looks like. Nothing errored, so every tool "finished", but nine of the sixty-five answers are a polite report that a site refused the tool: Reddit blocked curl, Jina Reader, and the Playwright browser; DuckDuckGo showed curl, lynx, and the Playwright browser a bot challenge; Yahoo rate-limited curl. Counting only runs that returned the actual content, oc delivered all thirteen, lynx twelve, Jina Reader eleven, curl and Playwright MCP ten each. That reframes the totals column: lynx's 707,216 is the cheapest number in the table and includes a search task it never read, and every tool except oc is billing at least one task for the report "the site said no". Jina's two Hacker News answers also describe a different story than every other tool saw on the same tasks, which is worth knowing about a reader that serves pages through its own cache. Jina remains the only tool here that routes browsing through a third party: every URL the agent reads is sent to Jina's servers, while every other condition talks only to the target site.
 
-Codex's per-session overhead is much smaller than Claude Code's, so its totals run well below the claude tables and the two agents should be compared within their own tables, not across them. Two rows are worth singling out. Playwright MCP spent 699,810 tokens and 27 tool calls dragging the Reddit thread through browser snapshots, more than double what oc spent on all six tasks. And oc's multi step tier costs twice its single page tier, 191,844 against 96,018, for the same reason as in the claude run: without `oc do <n>`, which this run predates, following a link meant paying for a second, larger read of a page the agent already had.
+The shape of oc's spend is different from the claude run too. oc took the most turns, sixty-eight, because its budgeted views make the agent navigate: `open`, then `find` or `do <n>`, each a small read. Under codex at xhigh reasoning effort every extra turn re-reads the cached transcript and buys more reasoning, so oc's fresh input is low (232,681 tokens across the run, against 306,106 for Jina and 288,851 for curl) while its total lands mid-table. The tool that reads less per page pays for it in turns here, and the tools that dump whole pages pay for it in input: on this agent those two costs roughly meet, and what separates the rows is the blocked tasks. Codex's per-session overhead is much smaller than Claude Code's, so its totals run well below the claude tables and the two agents should be compared within their own tables, not across them.
 
 ### Latest wiki results
 
@@ -216,6 +216,15 @@ Claude Code headless, run on 2026-08-23 with oc 0.4.0, five tasks times three to
 | websearch | 5/5 ✅ | 5/5 ✅ | 27 | 160,431 | 870,953 | 0.5243 | 22 |
 
 All three conditions answered all five questions correctly, so this is a cost result, not an accuracy one. The input column is the fresh context each tool put in front of the model, which is the number the page size drives: `oc`'s 500 token budget keeps it flat at roughly 1,100 tokens per task, while `WebFetch` pays for whatever the article weighs, 6,379 tokens on a short stub and 39,264 on the German Berlin article. The totals sit closer together because they are dominated by cache reads of the agent's own prompt, and the per-task rows show the spread growing with the page: `oc` cost 5.7x less input than `WebFetch` on the shortest article and 35x less on the longest. `WebSearch` was given only the question, never the article URL, which is the honest way to use that tool and part of why it costs the most; One wrinkle to know when reading the full rows: Claude Code's model router picked `claude-haiku-4-5` for three of the fifteen sessions (one webfetch, two websearch), visible in the model column; the ranking does not change if you compare only the sonnet rows.
+
+The same five lookups through codex (2026-08-24, oc 0.4.0, `gpt-5.6-sol` at xhigh, `webfetch` skipped since codex has no equivalent), from [results/agent-latest-wiki-codex.md](results/agent-latest-wiki-codex.md):
+
+| tool | success | correct | turns | input tokens | total tokens | avg s |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| oc-wiki | 5/5 | 5/5 | 13 | 34,189 | 165,460 | 19 |
+| websearch | 5/5 | 4/5 | 13 | 49,255 | 193,290 | 16 |
+
+Here the result is accuracy as well as cost: codex's own web search answered the German-Wikipedia population question with a stale number the current article no longer shows, while `oc wiki lang de Berlin` read the infobox and got it right, at fewer input tokens per task.
 
 ## Tasks
 

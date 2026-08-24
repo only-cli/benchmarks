@@ -12,3 +12,4 @@ reddit_thread.md
 /*.txt
 /*.md.tmp
 !results/agent-latest-codex.md
+!results/agent-latest-wiki-codex.md
