@@ -62,7 +62,7 @@ The cloud reference first-view numbers are the clearest case in the suite for re
 Two limits turned up while checking these pages, both worth knowing before trusting a run:
 
 - `oc find` cannot search for a string that starts with a dash, which on a CLI reference page is most of what you would want to search for. `oc find -- "--machine-type"` is parsed as flags, not as a query. Searching for `machine-type` without the leading dashes works.
-- On `azure-cli-ref`, the block numbers `oc find` prints do not match the ones `oc read` takes: `find` reports `--enable-hierarchical-namespace` at `[144]`, and `read 144` returns an unrelated paragraph about account level immutability. The same sequence lines up correctly on `aws-cli-ref`, so it is page shape dependent rather than always wrong.
+- On `azure-cli-ref`, the block numbers `oc find` prints do not match the ones `oc read` takes: `find` reports `--enable-hierarchical-namespace` at `[126]` and `[144]`, and `read` of either returns an unrelated paragraph about account level immutability. The same sequence lines up correctly on `aws-cli-ref`, so it is page shape dependent rather than always wrong. Still present in 0.5.0, and it is what made `azure-hns-flag` oc's most expensive row in the agent suite (see below).
 
 One more thing to know when comparing against older recorded runs: several `oc open` numbers here are larger than the ones in the committed run from 0.2.0-beta.1 (news-front 422 then, 1,154 now; repo-search 441 then, 1,471 now). The pages did not grow. oc now prints a page whole when it would finish within about four times the budget, so a page that fits trades a bigger first view for never needing a second command. Every number that grew is under 2,000 tokens, which is four times the default budget of 500, and every page too large for that rule still renders near 500.
 
@@ -90,20 +90,29 @@ The four cloud docs tasks are the coding shape the rest of the suite was missing
 
 These are also the tasks where the page view suite's cheap first view stops meaning anything, since none of the three answers is in it. What the agent suite measures here is the cost of the whole search, which for a paging reader is the first view plus a `find` and a `read`, and for a fetch-the-page reader is 18,000 to 132,000 tokens up front, once per turn that re-reads it.
 
-Multi step tasks carry `maxTurns: 25`; the default cap is 12. `stock-price`, `reddit-top-comment`, and `youtube-watch` were added after the run recorded below and have no numbers yet; see [only-cli's README](https://github.com/only-cli/oc#against-each-agents-own-defaults) for a default-tools measurement of `reddit-top-comment` in the meantime. The four cloud docs tasks were run separately and have their own table further down.
+Multi step tasks carry `maxTurns: 25`; the default cap is 12. All thirteen ran together on Claude Code on 2026-08-25 with oc 0.5.0, and on Codex on 2026-08-24 with oc 0.4.0; the tables below are from those runs.
 
 `youtube-watch` deliberately stops at the watch page. A video's transcript lives behind a second URL (`captionTracks[].baseUrl`, a signed link to YouTube's `timedtext` endpoint) that only oc's distiller currently surfaces as a followable link; every other tool would have to notice the JSON blob, extract that URL, and construct the fetch itself. It is not in the suite yet because live-checking it while adding this task turned up a live-site problem, not a tool problem: fetching a real `captionTracks` URL directly, with either plain curl or oc's Chrome-impersonating client, gets a `200` with an empty body. Whatever YouTube requires to serve that endpoint's content now (likely a request tied to a real browser session), no scriptable reader here can supply it, so a transcript task would measure that gate rather than any tool, the same reason the Rust book's chapter list and GitHub's sidebar were dropped. Revisit if that changes.
 
 ### Total tokens per task, Claude Code on claude-sonnet-5
 
+2026-08-25, oc 0.5.0, lynx 2.9.0, all thirteen tasks in one run.
+
 | task | oc | raw curl | lynx | Jina Reader | Playwright MCP |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| hn-top | 95,276 | 94,235 | 94,306 | 101,589 | 193,367 |
-| gh-search | 130,251 | 415,990 (failed) | 129,274 | 102,277 | 173,532 |
-| reddit-thread | 166,515 | 407,666 (failed) | 128,583 | 94,768 (blocked) | 159,672 (blocked) |
-| hn-comments | 154,511 | 309,665 | 143,597 | 144,508 | 348,298 |
-| gh-repo-detail | 187,160 | 128,906 | 139,578 | 263,499 | 267,707 |
-| ddg-follow | 138,196 | 499,088 | 137,493 | 148,602 | 433,119 (blocked) |
+| hn-top | 97,643 | 94,985 | 94,267 | 101,916 | 193,121 |
+| gh-search | 97,965 | 402,114 (failed) | 129,195 | 94,551 (blocked) | 172,579 |
+| stock-price | 199,676 | 431,775 (failed) | 131,815 | 165,927 | 182,441 |
+| reddit-thread | 130,241 | 126,405 (blocked) | 131,637 | 94,719 (blocked) | 160,635 (blocked) |
+| youtube-watch | 96,649 | 125,869 | 128,151 (no view count) | 109,021 | 233,993 |
+| aws-s3-recursive | 130,554 | 98,433 | 95,501 | 103,804 | 161,051 |
+| gcloud-instance-flags | 132,313 | 395,693 | 96,236 | 470,421 | 194,503 |
+| azure-hns-flag | 405,331 | 94,479 | 95,203 | 95,395 | 164,068 |
+| hn-comments | 133,119 | 130,163 | 159,785 | 149,155 | 338,486 |
+| gh-repo-detail | 135,028 | 533,851 | 139,456 | 94,659 (blocked) | 266,013 |
+| ddg-follow | 132,309 | 331,578 | 140,812 | 140,758 | 230,120 (blocked) |
+| reddit-top-comment | 275,500 | 785,978 | 246,813 | 94,614 (blocked) | 160,385 (blocked) |
+| aws-docs-follow | 203,382 | 335,845 | 149,908 | 150,739 | 248,648 |
 
 ### Total tokens per task, Codex on gpt-5.6-sol
 
@@ -118,36 +127,37 @@ Multi step tasks carry `maxTurns: 25`; the default cap is 12. `stock-price`, `re
 
 "blocked" marks a run that returned an answer saying the site refused the tool. Those runs count as successes in the harness, because the agent did reply and did not error, but they did not read the page, and any token comparison that ignores them rewards the tool that did the least work.
 
-### Total tokens per task, cloud docs tasks, Claude Code on claude-sonnet-5
+### The cloud docs group
 
-Run separately from the table above, on oc 0.3.0-beta.1. Lynx has no column because it was not installed on the machine that ran it.
+The four reference page tasks, pulled out of the Claude table above:
 
-| task | oc | raw curl | Jina Reader | Playwright MCP |
-| --- | ---: | ---: | ---: | ---: |
-| aws-s3-recursive | 129,941 | 97,729 | 103,801 | 179,255 |
-| gcloud-instance-flags | 232,674 | 393,083 (failed) | 133,174 | 195,487 |
-| azure-hns-flag | 129,562 | 389,425 (failed) | 95,604 | 198,739 |
-| aws-docs-follow | 198,196 | 143,694 (blocked) | 150,899 | 249,843 (skipped the search) |
-| **total** | **690,373** | 1,023,931 | **483,478** | **823,324** |
-| **turns** | **25** | 35 | **18** | **29** |
+| tool | tokens | turns | answered |
+| --- | ---: | ---: | ---: |
+| oc | 871,580 | 30 | 4/4 |
+| raw curl | 924,450 | 30 | 4/4 |
+| lynx | 436,848 | 17 | 4/4 |
+| Jina Reader | 820,359 | 25 | 4/4 |
+| Playwright MCP | 768,270 | 27 | 4/4 |
 
-**oc does not win this group, and the reason is worth reading.** Jina Reader answered all four for 483,478 tokens in 18 turns against oc's 690,373 in 25. Every total here is dominated by cache reads, which is to say by turn count: the pages are 18,000 to 132,000 tokens, and the conversation carrying them is re-read on every turn that follows. oc's per view is the smallest in the suite, but on a reference page it takes an `open`, then a `find`, then a `read` to reach one flag, and three turns of a small page cost more than one turn of a large one once the page fits in a context at all. Handing the agent 31,594 tokens of gcloud markdown once beat handing it 467 tokens three times.
+**oc does not win this group, and the reason is worth reading.** lynx answered all four for 436,848 tokens in 17 turns against oc's 871,580 in 30. Every total here is dominated by cache reads, which is to say by turn count: the pages are 18,000 to 132,000 tokens, and the conversation carrying them is re-read on every turn that follows. oc's per view is the smallest in the suite, but on a reference page it takes an `open`, then a `find`, then a `read` to reach one flag, and three turns of a small page cost more than one turn of a large one once the page fits in a context at all. Handing the agent lynx's dump of the gcloud page once beat handing it 467 tokens three times.
 
-That is the boundary of the page view result rather than a contradiction of it. Where a page is genuinely too large to hand over (`stock-quote` at 371,597, `video-page` at 338,815) or where the reader is blocked, one big read is not an option and paging wins by default. Where a documentation page is merely large, the turn tax decides it. Two things follow for oc: `oc raw` on the gcloud page is 46,186 tokens in one turn, which would have beaten eight turns of paging, and neither the tool nor its skill tells an agent when to prefer it.
+On `azure-hns-flag` the turn tax became a bug. `oc find hierarchical` lists the flag at `[126]` and `[144]`, but `oc read` of either number returns the account level immutability paragraph (the mismatch noted in the page view section above, still present in 0.5.0), so the agent found the flag, read the wrong block, and hunted: 13 turns and 405,331 tokens where lynx spent 4 and 95,203. Without that row oc's total for the group is 466,249, within 7% of lynx.
 
-Read the answer column here too. Only oc and Jina Reader actually performed `aws-docs-follow`: raw curl reported DuckDuckGo's CAPTCHA, and Playwright MCP hit the same CAPTCHA and then navigated straight to the AWS page, answering the question without doing the navigation the task is there to measure. Both are recorded as successes by the harness. Raw curl also failed the gcloud and Azure pages outright, spending its whole 13 turn budget on markup it could not fit.
+That is the boundary of the page view result rather than a contradiction of it. Where a page is genuinely too large to hand over (`stock-quote` at 399,881, `video-page` at 338,815) or where the reader is blocked, one big read is not an option and paging wins by default. Where a documentation page is merely large, the turn tax decides it. Three things follow for oc: the `find`/`read` numbering mismatch needs fixing before this group is a fair measure of paging; `oc raw` on the gcloud page is 46,186 tokens in one turn, which would have beaten several turns of paging; and neither the tool nor its skill tells an agent when to prefer it.
+
+Read the answer column here too. All five tools answered `aws-docs-follow` this time, where on the earlier run raw curl reported DuckDuckGo's CAPTCHA and Playwright MCP hit it and skipped straight to the AWS page. Raw curl and Jina Reader both saved a page to a scratch file (`awscp.html`, `gcloud_ref.md`) and then spent turns failing to delete it under the sandbox, which is where Jina's twelve turns on the gcloud page went.
 
 ### What each task turned out to measure
 
-- **hn-top** is the control. Every tool answers it in four turns on Claude and two or three on Codex, and the totals sit within a few percent of each other. A benchmark where the easy task separates the field is measuring something other than the task.
-- **gh-search** separates on page weight. Raw curl failed it on Claude, spending its entire 13 turn budget and 415,990 tokens on GitHub's markup without producing an answer.
-- **reddit-thread** separates on access. Only oc and lynx read the thread under both agents. Jina Reader and Playwright MCP reported the 403, and raw curl failed outright on Claude. It is also the task where Playwright MCP's cost explodes on Codex: 699,810 tokens and 27 tool calls to walk a comment page through browser snapshots.
+- **hn-top** is the control. Every shell tool answers it in four turns on Claude (the Playwright browser takes seven) and two or three on Codex, and the totals sit within a few percent of each other. A benchmark where the easy task separates the field is measuring something other than the task.
+- **gh-search** separates on page weight. Raw curl failed it on Claude, spending its entire 13 turn budget and 402,114 tokens on GitHub's markup without producing an answer. On the 2026-08-25 run GitHub had also suspended anonymous access for Jina Reader's whole service, so Jina's 94,551 there is a block report, not a read.
+- **reddit-thread** separates on access. Only oc and lynx read the thread under both agents. Jina Reader and Playwright MCP reported the 403, and raw curl reported Reddit's block page (it failed outright on the earlier Claude run). The two that read it also disagree: oc's agent named Lynx the most recommended browser and lynx's agent named w3m, which is what a judgment question over a long thread looks like. It is also the task where Playwright MCP's cost explodes on Codex: 699,810 tokens and 27 tool calls to walk a comment page through browser snapshots.
 - **hn-comments** is the cheapest multi step task for everyone, because the link an agent needs is a comment count on a page it has already read.
-- **gh-repo-detail** is where oc's missing navigation shows up most sharply. oc spent 187,160 tokens against lynx's 139,578 on Claude, because the compact view leaves link URLs out to save tokens and `oc do <n>` had not shipped yet in the version this run used (it landed in v0.2), so the agent had to re-fetch the search page as `oc open --json` or `oc raw` just to learn where the first result pointed. `lynx -dump` prints a references list with every URL for free.
-- **aws-s3-recursive** is the cloud docs control, and it separates nothing: the page is 17,990 tokens raw, which every tool can simply read, so raw curl's 97,729 is the cheapest of the four and all four produce the same correct command. A reference page only becomes a benchmark when it is too big to swallow.
-- **gcloud-instance-flags** and **azure-hns-flag** are where it does. Raw curl failed both, burning 393,083 and 389,425 tokens against pages of 132,545 and 100,142. Every tool that distills or pages answered correctly, and the cheapest was the one that handed over the whole distilled page in a single turn.
-- **aws-docs-follow** separates on the entry point rather than the documentation. DuckDuckGo challenged both raw curl and the Playwright browser, so only two of the four tools did the two hops the task describes.
-- **ddg-follow** separates on bot challenges twice over. DuckDuckGo showed the Playwright browser a CAPTCHA under both agents, and blocked raw curl under Codex. Raw curl also needed 16 turns and 499,088 tokens on Claude, and left scratch HTML files in the working directory while doing it.
+- **gh-repo-detail** is where oc's missing navigation showed up most sharply before `oc do <n>` shipped. On the 2026-08-18 run oc spent 187,160 tokens against lynx's 139,578, because the compact view leaves link URLs out to save tokens and the agent had to re-fetch the search page as `oc open --json` or `oc raw` just to learn where the first result pointed, where `lynx -dump` prints a references list with every URL for free. With `do` the gap is gone: 135,028 against 139,456 on 2026-08-25, in the same five turns.
+- **aws-s3-recursive** is the cloud docs control, and it separates nothing: the page is 17,990 tokens raw, which every tool can simply read, so lynx's 95,501 and raw curl's 98,433 are the cheapest of the five and all five produce the same correct command. oc pays one extra turn (130,554) for a `find` the page did not need. A reference page only becomes a benchmark when it is too big to swallow.
+- **gcloud-instance-flags** and **azure-hns-flag** are where it does. Raw curl failed both on the earlier run and needed 12 turns and 395,693 tokens for the gcloud page this time, against pages of 132,545 and 100,142 tokens. Every tool that distills or pages answered correctly, and the cheapest was the one that handed over the whole distilled page in a single turn: lynx at 96,236 and 95,203. `azure-hns-flag` is oc's worst row in the suite, 13 turns and 405,331 tokens, because of the `find`/`read` numbering mismatch described above.
+- **aws-docs-follow** separates on the entry point rather than the documentation. On the earlier run DuckDuckGo challenged both raw curl and the Playwright browser, so only two of the four tools did the two hops the task describes; on 2026-08-25 all five answered, raw curl in 10 turns and 335,845 tokens against oc's 7 and 203,382 and lynx's 5 and 149,908.
+- **ddg-follow** separates on bot challenges twice over. DuckDuckGo showed the Playwright browser a CAPTCHA under both agents, and blocked raw curl under Codex. Raw curl also needed 11 turns and 331,578 tokens on Claude (16 and 499,088 on the earlier run), and left scratch HTML files in the working directory while doing it.
 
 ## Language docs suite: one fact per language
 
