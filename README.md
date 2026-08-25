@@ -1,170 +1,112 @@
 # Browse the web in hundreds of tokens, not tens of thousands
 
-The same live pages, eleven ways AI agents read the web: [oc](https://github.com/only-cli/oc) hands the agent a page in a few hundred tokens where raw HTML costs tens of thousands, and it was the only reader to return real content on every task. These benchmarks are the receipts, reproducible on your machine.
+Reproducible benchmarks for how AI agents read the web. The same live pages and the same tasks, read eleven ways, [oc](https://github.com/only-cli/oc) among them. Every suite asks one question: how many tokens does the agent have to ingest, how long does it take, and did it actually get the content?
 
-Every benchmark here answers the same question: for the same page and the same task, how many tokens does the agent have to read, how long does it take, and did it actually get the content?
+**Where things stand** (oc 0.5.0, August 2026, live sites):
 
-## Metrics
+- **142x fewer tokens than raw HTML** across 15 real pages: 10,936 against 1,552,491. 14x fewer than Jina Reader, 49x fewer than Playwright MCP's accessibility snapshot.
+- **The only reader that returned real content on every page.** Reddit blocked curl, Jina Reader and Playwright; Jina also failed LinkedIn and Yahoo Finance; DuckDuckGo blocked lynx. oc's Chrome impersonation read all fifteen.
+- **Half the cost of Claude Code's built-in WebSearch on Wikipedia lookups**: $0.27 against $0.52 for five questions, both 5/5 correct, on 29x less fresh input.
+- **23% cheaper than WebFetch and 35% cheaper than WebSearch** on eleven language docs lookups, at equal or better accuracy.
+- **Not a clean sweep.** Under Codex, its own web search beat `oc docs` by 16% on those same lookups because the answers were already in the search snippets, and on the older multi-page browse run lynx beat oc on tokens. Both results are below, with the reasons.
 
-The benchmark reports the same metrics oc shows agents under `--verbose`, with token usage added on top:
-
-- **Token usage**: estimated tokens of the text the agent must ingest (chars / 4, same estimator oc uses)
-- **Speed**: wall clock milliseconds end to end, plus the fetch and process split where the adapter reports it
-- **HTTP status**: what the site actually answered, so a block or a challenge page shows up as itself
-- **Resources**: bytes transferred over the network and memory used, where the adapter reports them
-- **Success rate**: did the method return usable page content at all
-- **Model**: which model drove the tool, so the same tool can be compared across models. Deterministic adapters (plain fetchers, oc itself) report `none`; agent-driven adapters like browser-use report the model they ran with
-
-The oc adapters run with `-v` and read oc's own metrics line from stderr, so stdout, the text an agent would read, stays exactly what gets token-counted.
-
-## Methods compared
-
-| adapter | model | what it represents |
-| --- | --- | --- |
-| `oc-open` | none | oc compact view, the default agent path |
-| `oc-raw` | none | oc whole-page markdown |
-| `raw-fetch` | none | naive agent behavior: fetch the URL, read the raw HTML |
-| `jina-reader` | none | [Jina Reader](https://jina.ai/reader), a hosted URL-to-markdown service popular in agent stacks (keyless free tier) |
-| `lynx-dump` | none | `lynx -dump`, the 1992 text browser, the oldest text-only baseline (skipped unless lynx is installed; set `LYNX_BIN` to point at it) |
-| `playwright-mcp` | none | [Playwright MCP](https://github.com/microsoft/playwright-mcp): what an MCP agent ingests per `browser_navigate`, the tool response plus the accessibility-tree snapshot it points at (needs `npx @playwright/mcp install-browser chrome-for-testing` once; skipped if the server cannot start) |
-| `browser-use` | none | [Browser Use](https://github.com/browser-use/browser-use): the browser state message it composes for its model on every step, extracted headless via `uvx` (skipped unless [uv](https://docs.astral.sh/uv) is installed) |
-| `playwright-html` | none | plain [Playwright](https://playwright.dev): JS-rendered page HTML from headless Chromium, what a script-your-own-browser agent reads (needs `uvx --with playwright playwright install chromium` once) |
-| `selenium-html` | none | plain [Selenium](https://www.selenium.dev): JS-rendered `page_source`; Selenium Manager provisions its own chrome-for-testing on first run |
-| `claude-computer-use` | none | screenshot floor for [Claude computer use](https://docs.claude.com/en/docs/agents-and-tools/computer-use): one real 1024x768 screenshot of the page, priced with Anthropic's published image-token formula (width x height / 750) |
-| `openai-computer-use` | none | the same screenshot priced with [OpenAI's image formula](https://platform.openai.com/docs/guides/images-vision) (85 base + 170 per 512px tile); the two computer-use rows share one memoized capture, so the second reports ~0 ms |
-
-The tool-driven rows report `model: none` because no model drives them here: the adapters measure the per-page-view payload those tools hand their model, which is the same floor whatever the model. They are floors in a second sense too: a real agent re-reads a fresh snapshot or screenshot after every click and scroll, so a five-step task pays those tokens five times, where oc pays its budget once per command. The computer-use rows are the starkest case: the screenshot price buys one look at the top third of the page, before any scrolling and before prompt or reasoning tokens.
-
-PRs adding an adapter are welcome; an adapter is one file in `adapters/` exporting `run(url)` and returning `{ output, bytes }`, plus `status`, `fetchMs`, `processMs`, and `memMB` when the method can report them. An adapter with a model in the loop also exports `model` (for example `claude-sonnet-5`), so one tool can appear once per model it was tested with.
-
-## The agentic browser landscape
-
-Everything an agent can browse the web with, and whether this benchmark can measure it:
-
-**Scriptable page readers, measurable, `model: none`.** Same lane as oc: one call in, text out, deterministic.
-
-- Lynx, w3m, links: classic terminal browsers with a dump mode (lynx implemented)
-- [Jina Reader](https://jina.ai/reader): hosted URL-to-markdown (implemented)
-- Plain [Playwright](https://playwright.dev) and [Selenium](https://www.selenium.dev): script the browser yourself, read the rendered HTML (both implemented)
-- [Firecrawl](https://firecrawl.dev): hosted scraping to LLM-ready markdown; adapter welcome, needs an API key
-- [Trafilatura](https://trafilatura.readthedocs.io) and [readability-cli](https://gitlab.com/gardenappl/readability-cli): extraction libraries agents pipe fetched HTML through; adapters welcome
-
-**Model-driven browser automation, measurable, fills the model column.** Their per-page-view payload is measurable without a model (implemented that way above); end-to-end task cost depends on the model driving them, so with an API key each can also appear once per model tested.
-
-- [Playwright MCP](https://github.com/microsoft/playwright-mcp): accessibility-tree snapshots, the de facto standard agent browser tool (implemented, and also a condition in the agent benchmark below)
-- [Browser Use](https://github.com/browser-use/browser-use): the popular agent-browsing framework (implemented)
-- Claude computer use and [OpenAI computer use](https://platform.openai.com/docs/guides/tools-computer-use): screenshot-driven agents; their per-view screenshot floor is implemented, the full agent loop needs an API key
-- [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp): same shape as Playwright MCP on real Chrome; adapter welcome
-- [Magnitude](https://github.com/magnitudedev/magnitude), [Notte](https://github.com/nottelabs/notte), [Stagehand](https://github.com/browserbase/stagehand), [Skyvern](https://github.com/Skyvern-AI/skyvern): agent-browsing frameworks; adapters welcome, all need a model API key to do anything measurable
-
-**Consumer agentic browsers, not measurable.** ChatGPT Atlas, Perplexity Comet, Claude for Chrome, Gemini in Chrome, Dia, Fellou. No CLI and no way to meter their token usage from outside, so they are listed for context, not benchmarked. If one grows a scriptable interface, it moves up a tier.
-
-## Run it
+## Quick start
 
 ```
-node run.js
+node run.js                                       # page view suite, no model needed
+node agent-run.js                                 # browse tasks through claude -p
+node agent-run.js --suite=wiki                    # Wikipedia lookups
+node agent-run.js --suite=docs                    # language docs lookups
+AGENT_CLI=codex node agent-run.js --suite=docs    # any agent suite through codex exec
+node agent-run.js --report-only                   # re-render tables from the saved JSON
 ```
 
-Node 20+, no dependencies. Results print as a markdown table and land in `results/latest.json`. By default the oc adapters run the CLI from a sibling checkout at `../only-cli`; set `OC_BIN` to point somewhere else (for example `OC_BIN="npx @only-cli/oc"`). Adapters whose tool is not installed announce themselves on stderr and drop out instead of failing the run.
+Node 20+, no dependencies. Results print as a markdown table and land in `results/`. Adapters whose tool is not installed announce themselves on stderr and drop out instead of failing the run.
 
-## Agent benchmark: claude -p
+| variable | what it does |
+| --- | --- |
+| `OC_BIN` | which oc the page suite runs; defaults to a sibling checkout at `../only-cli`, or `OC_BIN="npx -y @only-cli/oc@0.5.0"` for the published package |
+| `AGENT_CLI` | `claude` (default) or `codex` |
+| `AGENT_MODEL` | rerun the same conditions on another model |
+| `LYNX_BIN` | where lynx lives if it is not on PATH |
 
-`run.js` measures what a tool hands an agent per page. `agent-run.js` measures the thing you actually pay for: a whole task done by a real agent using that tool, model included.
-
-```
-node agent-run.js
-```
-
-It runs Claude Code headless (`claude -p`, JSON output) on the tasks in `agent-tasks.json`, once per tool condition: oc, raw curl, lynx, Jina Reader, and Playwright MCP (attached as a real MCP server). Tasks come in two tiers. Single page tasks answer a question from one URL. Multi step tasks start on one page and require finding a link and opening a second one (front page to comment thread, search results to repository, search engine to documentation site), which is where token cost compounds: the first page is re-read on every turn that follows it. A task may raise the turn cap with `maxTurns`; the default is 12. Each run is restricted to its one tool through allowed-tools rules, with WebFetch and WebSearch disabled so the model cannot cheat. Every condition also ships a matching [skill](.claude/skills) documenting its tool (browse-oc, browse-curl, browse-lynx, browse-jina, browse-playwright-mcp), and a session is allowed exactly its own, so every agent starts from the same quality of tool documentation instead of whatever the model happens to know. From the JSON it records success, turns, wall time, cost in USD, and full token usage per model: input, output, cache read, and cache creation, shown as columns in the per-run table and broken out per model in `results/agent-latest.json`. The model column finally earns its name here; set `AGENT_MODEL` to rerun the same conditions on another model. `node agent-run.js --report-only` re-renders the tables from the last saved JSON without spending any sessions.
-
-Three methods from the page view table are missing here: browser-use and the two computer use rows. The computer use rows are not tools an agent can call at all, they are a priced screenshot floor, so putting them in a task benchmark means driving a vendor's own computer use loop and reading that API's usage instead. browser-use is a closer call, because it ships an MCP server that Claude Code or Codex can attach exactly like Playwright MCP. The problem is what happens inside it: its content extraction runs its own model (`Error: LLM not initialized (set OPENAI_API_KEY)`), and that spend is invisible to the outer agent's usage JSON, so the token column would report a fraction of what the run actually cost. Restricting it to the primitives that need no model would make it a Playwright MCP clone with the interesting part switched off. Both belong in a table of their own, compared against themselves the way codex is here, and neither is in this one.
-
-Requirements: `claude` on PATH and logged in, `oc` on PATH (`npm install -g @only-cli/oc`), lynx for the lynx condition. Fair warning: every run spends real model quota; thirteen tasks times five tools is sixty-five agent sessions, a few dollars on Sonnet.
-
-Network benchmarks are honest but noisy: they hit live sites, so numbers vary run to run and a site may block or change at any time. Compare orders of magnitude, not single-digit percentages.
-
-## Wikipedia benchmark: a shortcut against the built in web tools
-
-The other suites line `oc` up against other shell readers. This one asks a different question: when the answer is on Wikipedia, is a tuned shortcut worth anything next to the two web tools Claude Code already ships, `WebFetch` and `WebSearch`?
-
-```
-node agent-run.js --suite=wiki                    # claude -p
-AGENT_CLI=codex node agent-run.js --suite=wiki    # codex exec
-```
-
-Tasks live in `wiki-tasks.json`, five ways someone actually reaches for Wikipedia: an ambiguous term whose article competes with homonyms in cosmology and geology (`anthropic`), a person (`Dario Amodei`), one fact buried in a long article (when the Eiffel Tower was finished and how tall it is), a technical concept (which paper introduced the transformer), and a non English wiki (Berlin's population according to `de.wikipedia.org`).
-
-Three conditions: `oc-wiki` gets `oc` with its Wikipedia shortcuts, `webfetch` gets `WebFetch` alone, `websearch` gets `WebSearch` alone. Each ships a matching skill in [.claude/skills](.claude/skills), and each condition disallows the other two web tools so a run cannot quietly switch tools mid task.
-
-The wiki tasks also carry an `expect` regex naming the fact a right answer has to contain, and the report grades every answer against it. The browse suite has no such field and its report is unchanged. Grading matters more here than in the other suites, because a search snippet can produce a fluent answer about the wrong Anthropic, and a token count next to a wrong answer is not a saving. Cheapest is only credited among conditions that got every answer right.
-
-Two caveats worth stating before reading any numbers. First, the conditions are not handed identical inputs: `WebFetch` and `oc` are given the starting URL, while `WebSearch` takes a query and has to find the page itself, which is what that tool is for but is a different job. Second, under `codex exec` the `webfetch` condition is skipped rather than approximated, since codex ships no fetch-one-url-through-a-model tool; its own web search stands in for `WebSearch` via `-c tools.web_search=true`.
-
-The `oc` under test is whatever `oc` resolves to on PATH. To measure a shortcut that is not released yet, put a shim earlier in PATH:
+The agent suites need `claude` (or `codex`) on PATH and logged in, plus `oc` (`npm install -g @only-cli/oc`). To measure an unreleased oc, shim it ahead on PATH:
 
 ```
 printf '#!/bin/sh\nexec node /path/to/oc/src/cli.js "$@"\n' > bin/oc
 chmod +x bin/oc && PATH="$PWD/bin:$PATH" node agent-run.js --suite=wiki
 ```
 
-## Language docs benchmark: eleven coding lookups against the built in web tools
+Fair warning: every agent run spends real model quota. Thirteen tasks times five tools is sixty-five sessions, a few dollars on Sonnet.
 
-The docs suite asks the wiki suite's question about language documentation: when an agent needs one fact from a reference page mid coding task, is a tuned docs shortcut worth anything next to the web tools it already has?
+## The four suites
 
-```
-node agent-run.js --suite=docs                    # claude -p
-AGENT_CLI=codex node agent-run.js --suite=docs    # codex exec
-```
+| suite | question it answers | tasks | oc against | results |
+| --- | --- | --- | --- | --- |
+| Page view (`run.js`) | What does one page view cost per tool, before any model is involved? | 15 pages, `tasks.json` | curl, Jina Reader, lynx, Playwright MCP, Browser Use, Playwright, Selenium, computer-use screenshots | [latest.md](results/latest.md) |
+| Browse (`agent-run.js`) | What does a whole task cost a real agent using that tool? | 13 tasks, `agent-tasks.json` | curl, lynx, Jina Reader, Playwright MCP | [claude](results/agent-latest.md), [codex](results/agent-latest-codex.md) |
+| Wikipedia (`--suite=wiki`) | Is `oc wiki` worth anything next to the web tools the agent already has? | 5 lookups, `wiki-tasks.json` | WebFetch, WebSearch | [claude](results/agent-latest-wiki.md), [codex](results/agent-latest-wiki-codex.md) |
+| Language docs (`--suite=docs`) | Same question for `oc docs`, one fact per language | 11 lookups, `docs-tasks.json` | WebFetch, WebSearch | [claude](results/agent-latest-docs.md), [codex](results/agent-latest-docs-codex.md) |
 
-Tasks live in `docs-tasks.json`, one canonical lookup per language shortcut oc ships: `json.dumps`'s `sort_keys` default (Python), `Array.prototype.at` with a negative index (MDN), the option `fs.rm` needs for a non-empty directory (Node.js), `Array#dig` on a nil step (Ruby), the `json:"-"` struct tag (Go), what `Vec::pop` returns (Rust), what `Optional.get` throws (Java), whether `array_filter` keeps keys (PHP), what `Partial<Type>` does (TypeScript), what `vector::at` throws (C++ via cppreference), and `String.IsNullOrWhiteSpace` on spaces (.NET via Microsoft Learn). Same three conditions, grading, and caveats as the wiki suite, with the `browse-oc-docs` skill documenting the shortcuts.
+Every task is documented in [TASKS.md](TASKS.md): what the page is, why it was chosen, and what it turned out to measure.
 
-## Latest results
+## Results
 
-only-cli 0.5.0, Node 22, run on 2026-08-24 against live sites, the same fifteen tasks as the previous recorded run. This run measured the published npm package (`OC_BIN="npx -y @only-cli/oc@0.5.0"`), so the oc timing columns include npx startup on every call; the token columns are what they always were, the text an agent would read. Full per-task rows are in [results/latest.md](results/latest.md).
+### Page view: tokens per page, no model in the loop
 
-| adapter | model | success | total tokens | avg ms | avg fetch ms | total KB |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| oc-open | none | 15/15 | 10936 | 1291 | 439 | 5944 |
-| oc-raw | none | 15/15 | 257573 | 1361 | 405 | 5956 |
-| raw-fetch | none | 15/15 | 1552491 | 295 | 295 | 6067 |
-| jina-reader | none | 13/15 | 148479 | 3432 | 3939 | 582 |
-| lynx-dump | none | 14/15 | 276459 | 489 | 479 | 0 |
-| playwright-mcp | none | 15/15 | 531335 | 925 | 924 | 0 |
-| browser-use | none | 15/15 | 27645 | 4112 | 1637 | 0 |
-| playwright-html | none | 15/15 | 1604438 | 1295 | 614 | 6269 |
-| selenium-html | none | 15/15 | 1678987 | 1753 | 714 | 6560 |
-| claude-computer-use | none | 15/15 | 15735 | 1219 | 585 | 1824 |
-| openai-computer-use | none | 15/15 | 11475 | 0 | 585 | 1824 |
+oc 0.5.0 from npm (`OC_BIN="npx -y @only-cli/oc@0.5.0"`, so oc's timing columns include npx startup on every call), Node 22, 2026-08-24. Fifteen live pages: a news front page, a Reddit thread, search results, a stock quote, cloud and language reference pages.
 
-oc-open reads all fifteen pages for 10,936 tokens, 142x fewer than raw HTML. The only rows in its neighborhood are floors, not reads: the computer-use rows price a single 1024x768 screenshot per page, one look at the top before any scrolling, which is why the OpenAI row is nominally smaller, and browser-use's state message carries indexed elements but drops most page text. Among methods that actually deliver the page content, the gap is about 14x to Jina Reader and 49x to Playwright MCP's accessibility snapshot, and the rendered-HTML routes (Playwright, Selenium) cost slightly more than raw fetch plus a browser.
+| adapter | success | total tokens | avg ms | avg fetch ms | total KB |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| oc-open | 15/15 | 10,936 | 1291 | 439 | 5944 |
+| oc-raw | 15/15 | 257,573 | 1361 | 405 | 5956 |
+| raw-fetch | 15/15 | 1,552,491 | 295 | 295 | 6067 |
+| jina-reader | 13/15 | 148,479 | 3432 | 3939 | 582 |
+| lynx-dump | 14/15 | 276,459 | 489 | 479 | 0 |
+| playwright-mcp | 15/15 | 531,335 | 925 | 924 | 0 |
+| browser-use | 15/15 | 27,645 | 4112 | 1637 | 0 |
+| playwright-html | 15/15 | 1,604,438 | 1295 | 614 | 6269 |
+| selenium-html | 15/15 | 1,678,987 | 1753 | 714 | 6560 |
+| claude-computer-use | 15/15 | 15,735 | 1219 | 585 | 1824 |
+| openai-computer-use | 15/15 | 11,475 | 0 | 585 | 1824 |
 
-The failure and status columns earned their keep again. Lynx got blocked on the DuckDuckGo search task, same as last run. Jina Reader dropped to 13 of 15: it failed both the LinkedIn company page and the Yahoo Finance quote page, the two pages it had been failing one at a time across the previous two runs. Some of the smallest numbers in the per-task rows are still blocks wearing a success badge: Jina's 295 and 283 token Reddit "results" are Reddit's block page ("whoa there, pardner!", a 403 to its crawler wrapped in a 200), Playwright MCP's 207 and 184 token Reddit snapshots are blocked pages too, and browser-use came back from both Reddit tasks nearly empty. oc, riding its Chrome-impersonated client, was again the only distilling reader that returned real content on all fifteen tasks.
+- **oc reads all fifteen pages for 10,936 tokens.** A page that fits in about four times the budget prints whole (the Hacker News front page lands at 1,178); everything larger renders near the 500 token budget however much the page weighs. The three cloud reference pages come in at 502, 488 and 467 tokens against 17,990 to 132,497 raw; the three language docs pages at 496, 481 and 475 against 27,940 to 273,820. The starkest single page is the Yahoo Finance quote: 399,881 tokens raw, 456 through oc, about 880x. Node's `fs` reference is close behind at 273,820 raw against 475, a page even lynx needs 119,604 tokens for.
+- **The rows near oc are floors, not reads.** The computer-use rows price one 1024x768 screenshot per page, a look at the top third before any scrolling and before any prompt or reasoning tokens, which is why the OpenAI row is nominally the smallest. Browser Use's state message carries indexed elements but drops most of the page text. Among tools that actually deliver the content, the gap is 14x to Jina Reader and 49x to Playwright MCP, and the rendered-HTML routes (Playwright, Selenium) cost slightly more than raw fetch plus a browser.
+- **Some success badges are blocks.** Jina's 295 and 283 token Reddit "results" are Reddit's block page ("whoa there, pardner!", a 403 wrapped in a 200). Playwright MCP's 207 and 184 token Reddit snapshots are blocked pages too, and Browser Use came back from both Reddit tasks nearly empty. Lynx was blocked on the DuckDuckGo search; Jina failed LinkedIn and Yahoo Finance outright. oc was the only distilling reader with real content on all fifteen.
 
-The per-page shape carries over from 0.4.0: a page that would finish within about four times the budget prints whole (the Hacker News front page lands at 1,178), and everything larger renders near the 500 token budget however much the page weighs. The three cloud reference pages come in at 502, 488, and 467 against 17,990 to 132,497 raw, and the three language documentation pages at 496, 481, and 475 against 27,940 to 273,820 raw. The starkest single number this run is the Yahoo Finance quote page: 399,881 tokens fetched raw, 456 through oc's first view, a gap of about 880x on one page. Node's `fs` module reference is close behind at 273,820 raw against 475, a page even lynx needs 119,604 tokens for.
+### Browse: whole tasks through Claude Code and Codex
 
-### Latest agent results
+Single page tasks answer a question from one URL (Hacker News front page, a GitHub repository search, a Yahoo Finance quote, an old.reddit thread, a YouTube watch page, three cloud CLI reference pages). Multi step tasks start on one page and have to find and open a second (front page to the #1 story's comments, search results to the winning repository's license, DuckDuckGo to the Rust book, DuckDuckGo to an AWS reference page), which is where cost compounds: the first page is re-read on every turn that follows it. Each condition is locked to its one tool, with WebFetch and WebSearch disabled.
 
-Claude Code headless on `claude-sonnet-5`, run on 2026-08-18 with oc 0.2.0-beta.1, six tasks times five tool conditions, thirty agent sessions. Three single page tasks (Hacker News front page, a GitHub repository search, an old.reddit thread) and three multi step ones (front page to the #1 story's comments, repository search to the winning repository's license, DuckDuckGo to the Rust book's introduction). Full rows with each agent's answer are in [results/agent-latest.md](results/agent-latest.md).
+**Claude Code, `claude-sonnet-5`, 2026-08-18, oc 0.2.0-beta.1.** Six tasks, the suite's size at the time; thirty sessions.
 
-| tool | model | success | turns | output tokens | total tokens | total cost USD | avg s |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| oc | claude-sonnet-5 | 6/6 ✅ | 31 | 2121 | 871909 | 0.7367 | 13 ✅ |
-| raw-curl | claude-sonnet-5 | 4/6 | 61 | 3888 | 1031894 | 0.5409 | 39 |
-| lynx | claude-sonnet-5 | 6/6 ✅ | 29 ✅ | 1967 | 772831 ✅ | 0.5492 ✅ | 14 |
-| jina-reader | claude-sonnet-5 | 6/6 ✅ | 30 | 1899 ✅ | 855243 | 0.7222 | 19 |
-| playwright-mcp | claude-sonnet-5 | 6/6 ✅ | 48 | 4837 | 1575695 | 1.2245 | 29 |
+| tool | success | turns | output tokens | total tokens | total cost USD | avg s |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| oc | 6/6 ✅ | 31 | 2121 | 871,909 | 0.7367 | 13 ✅ |
+| raw-curl | 4/6 | 61 | 3888 | 1,031,894 | 0.5409 | 39 |
+| lynx | 6/6 ✅ | 29 ✅ | 1967 | 772,831 ✅ | 0.5492 ✅ | 14 |
+| jina-reader | 6/6 ✅ | 30 | 1899 ✅ | 855,243 | 0.7222 | 19 |
+| playwright-mcp | 6/6 ✅ | 48 | 4837 | 1,575,695 | 1.2245 | 29 |
 
-Turns count every run, failures included; token and cost totals count successes only. The ✅ marks the best value in each column among tools that finished every task; a tool that skipped work by failing would otherwise "win" every token column. Charted with nothing hidden, every token claude billed for a tool across the six tasks, failed runs included:
+**Codex, `gpt-5.6-sol` at xhigh, codex 0.148.0, 2026-08-24, oc 0.4.0.** Thirteen tasks, sixty-five sessions.
 
-```
-oc             ###################                        871,909 tokens  31 turns
-raw-curl       ########################################  1,855,550 tokens  61 turns  2 failed
-lynx           #################                          772,831 tokens  29 turns
-jina-reader    ##################                         855,243 tokens  30 turns
-playwright-mcp ##################################        1,575,695 tokens  48 turns
-```
+| tool | success | turns | output tokens | total tokens | avg s |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| oc | 13/13 | 68 | 9,606 | 1,092,207 | 31 |
+| raw-curl | 13/13 | 60 | 9,281 | 1,585,812 | 24 |
+| lynx | 13/13 | 49 | 5,280 | 707,216 | 17 |
+| jina-reader | 13/13 | 59 | 6,321 | 1,016,427 | 29 |
+| playwright-mcp | 13/13 | 57 | 5,826 | 1,070,006 | 28 |
 
-Splitting the totals by tier shows what an extra hop costs:
+- **Under Claude, lynx takes the token and cost columns, not oc, and the reason is a missing feature.** That run predates `oc do <n>`: the compact view leaves link URLs out to save tokens, so an agent that needed to follow a link had to re-fetch the page as `oc open --json` (18.8k characters on the Hacker News front page) or `oc raw` (11.2k) to see where `[15]` pointed, against 1.7k for the view it already had. `lynx -dump` prints every URL next to the text for free. That navigation tax is most of oc's 59k token gap on the multi step tier and all of it on the GitHub task (187k against 140k). Numbered actions shipped in v0.2 as `oc do <n>`; this suite has not been rerun on Claude since.
+- **Under Codex, thirteen out of thirteen is not what it looks like.** Nothing errored, but nine of the sixty-five answers are a polite report that a site refused the tool: Reddit blocked curl, Jina Reader and the Playwright browser; DuckDuckGo showed curl, lynx and Playwright a bot challenge; Yahoo rate-limited curl. Counting only runs that returned real content: oc 13, lynx 12, Jina Reader 11, curl and Playwright MCP 10 each. lynx's 707,216 is the cheapest number in the table and includes a search task it never read.
+- **oc's spend has a different shape.** It took the most turns under Codex (68) because budgeted views make the agent navigate: `open`, then `find` or `do <n>`, each a small read. Its fresh input is the lowest in the run (232,681 tokens against 306,106 for Jina and 288,851 for curl), but at xhigh reasoning every extra turn re-reads the cached transcript and buys more reasoning, so its total lands mid-table. The tool that reads less per page pays in turns; the tools that dump whole pages pay in input. On this agent those roughly meet, and what separates the rows is the blocked tasks.
+- **Content nobody else gets.** Reddit served Jina Reader and Playwright MCP a 403 and curl failed the thread outright; only oc and lynx read it. DuckDuckGo showed Playwright a CAPTCHA, so that agent went to the Rust book directly and said so; raw curl spent 16 turns and half a million tokens on the same task and left scratch HTML files in the working directory. Jina Reader answered both Hacker News tasks from a cached front page whose #1 story had already rotated out, and it is the only tool here that routes every URL the agent reads through a third party's servers.
+
+<details>
+<summary>Per-tier breakdown: what an extra hop costs</summary>
+
+Claude Code:
 
 | tool | single page tokens | single page turns | multi step tokens | multi step turns |
 | --- | ---: | ---: | ---: | ---: |
@@ -174,35 +116,7 @@ Splitting the totals by tier shows what an extra hop costs:
 | jina-reader | 298,634 | 12 | 556,609 | 18 |
 | playwright-mcp | 526,571 | 19 | 1,049,124 | 29 |
 
-Four of the five tools answered all six tasks. Raw curl failed two, the GitHub search and the Reddit thread, burning its full 13-turn budget and roughly 400k tokens on each before giving up.
-
-The honest headline of this round is that lynx, not oc, takes the token and cost columns. The reason is a missing feature, and it shows up in the multi step tier: oc's compact view leaves link URLs out to save tokens, and `oc do <n>` had not shipped yet in the version this run used, so an agent that needed to follow a link had to re-fetch the page as `oc open --json` (18.8k characters on the Hacker News front page) or `oc raw` (11.2k) to see where `[15]` points, against 1.7k for the compact view it already had. Lynx pays nothing for this: `lynx -dump` prints a references list with every URL next to the text. That navigation tax is most of oc's 59k token gap on the multi step tier, and all of it on the GitHub task (187k for oc against 140k for lynx). Numbered actions that an agent can actually activate are the fix; they shipped in v0.2 as `oc do <n>`, and this suite has not been rerun since.
-
-Where oc still stands alone is content nobody else gets. Reddit served Jina Reader and Playwright MCP a 403, so both "answered" that task by reporting the block, and raw curl failed it outright. Only oc and lynx read the thread. Two more texture notes from the multi step runs: DuckDuckGo showed Playwright MCP a CAPTCHA, so that agent navigated to the Rust book directly and said so, and raw curl needed 16 turns and half a million tokens on the same task while leaving scratch HTML files behind in the working directory.
-
-The breakdown columns show where the money actually goes: almost everything is cache reads, because the agent re-reads its whole conversation every turn, so a bloated page is paid for again on every turn that follows it. That snowball is why raw curl's 13-turn Reddit failure costs 400k tokens, why every tool's multi step tier costs more than its single page tier, and why Playwright MCP's doubles.
-
-Two honesty notes on the absolute numbers. Every total includes Claude Code's own session overhead, roughly 60k tokens per run, mostly cached reads of its system prompt, plus a couple of turns to load the tool's skill, so the differences between rows are the signal, not the absolute figures. And live sites move between runs: Jina Reader answered both Hacker News tasks with a cached front page whose #1 story had already rotated out, right or stale depending on when its cache last saw the page.
-
-### The same tasks through codex
-
-`AGENT_CLI=codex node agent-run.js` runs the identical thirteen tasks through `codex exec`, the OpenAI Codex CLI's answer to `claude -p`, reading token usage from its `--json` event stream into [results/agent-latest-codex.md](results/agent-latest-codex.md). This table is from a 2026-08-24 run with oc 0.4.0, codex 0.148.0, and `gpt-5.6-sol` at xhigh reasoning effort. Codex differences: no allowed-tools equivalent, so the one-tool restriction is prompt-only; it cannot load claude skills, so the same skill body rides along in the prompt; no per-run cost on a ChatGPT plan; no turn cap; and its turns count completed tool calls and messages, since codex reports one turn per session however much happens inside it.
-
-| tool | model | success | turns | output tokens | total tokens | avg s |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| oc | gpt-5.6-sol | 13/13 | 68 | 9,606 | 1,092,207 | 31 |
-| raw-curl | gpt-5.6-sol | 13/13 | 60 | 9,281 | 1,585,812 | 24 |
-| lynx | gpt-5.6-sol | 13/13 | 49 | 5,280 | 707,216 | 17 |
-| jina-reader | gpt-5.6-sol | 13/13 | 59 | 6,321 | 1,016,427 | 29 |
-| playwright-mcp | gpt-5.6-sol | 13/13 | 57 | 5,826 | 1,070,006 | 28 |
-
-```
-oc             ###########################               1,092,207 tokens  68 turns
-raw-curl       ########################################  1,585,812 tokens  60 turns
-lynx           ##################                          707,216 tokens  49 turns
-jina-reader    ##########################                1,016,427 tokens  59 turns
-playwright-mcp ###########################               1,070,006 tokens  57 turns
-```
+Codex:
 
 | tool | single page tokens | single page turns | multi step tokens | multi step turns |
 | --- | ---: | ---: | ---: | ---: |
@@ -212,13 +126,15 @@ playwright-mcp ###########################               1,070,006 tokens  57 tu
 | jina-reader | 736,286 | 41 | 280,141 | 18 |
 | playwright-mcp | 637,801 | 35 | 432,205 | 22 |
 
-Read the success column carefully here, because thirteen out of thirteen is not what it looks like. Nothing errored, so every tool "finished", but nine of the sixty-five answers are a polite report that a site refused the tool: Reddit blocked curl, Jina Reader, and the Playwright browser; DuckDuckGo showed curl, lynx, and the Playwright browser a bot challenge; Yahoo rate-limited curl. Counting only runs that returned the actual content, oc delivered all thirteen, lynx twelve, Jina Reader eleven, curl and Playwright MCP ten each. That reframes the totals column: lynx's 707,216 is the cheapest number in the table and includes a search task it never read, and every tool except oc is billing at least one task for the report "the site said no". Jina's two Hacker News answers also describe a different story than every other tool saw on the same tasks, which is worth knowing about a reader that serves pages through its own cache. Jina remains the only tool here that routes browsing through a third party: every URL the agent reads is sent to Jina's servers, while every other condition talks only to the target site.
+Raw curl's two Claude failures (the GitHub search and the Reddit thread) each burned the full 13-turn budget and roughly 400k tokens before giving up; failed runs are excluded from the token totals but counted in turns.
 
-The shape of oc's spend is different from the claude run too. oc took the most turns, sixty-eight, because its budgeted views make the agent navigate: `open`, then `find` or `do <n>`, each a small read. Under codex at xhigh reasoning effort every extra turn re-reads the cached transcript and buys more reasoning, so oc's fresh input is low (232,681 tokens across the run, against 306,106 for Jina and 288,851 for curl) while its total lands mid-table. The tool that reads less per page pays for it in turns here, and the tools that dump whole pages pay for it in input: on this agent those two costs roughly meet, and what separates the rows is the blocked tasks. Codex's per-session overhead is much smaller than Claude Code's, so its totals run well below the claude tables and the two agents should be compared within their own tables, not across them.
+</details>
 
-### Latest wiki results
+### Wikipedia: `oc wiki` against WebFetch and WebSearch
 
-Claude Code headless, run on 2026-08-23 with oc 0.4.0, five tasks times three tool conditions, fifteen agent sessions. Full rows with each agent's answer are in [results/agent-latest-wiki.md](results/agent-latest-wiki.md).
+Five ways someone actually reaches for Wikipedia: an ambiguous term whose article competes with homonyms in cosmology and geology (`anthropic`), a person (Dario Amodei), one fact buried in a long article (when the Eiffel Tower was finished and how tall it is), a technical concept (which paper introduced the transformer), and a non-English wiki (Berlin's population on `de.wikipedia.org`). Answers are graded against an `expect` regex, because a search snippet can produce a fluent answer about the wrong Anthropic, and a token count next to a wrong answer is not a saving.
+
+**Claude Code, `claude-sonnet-5`, 2026-08-23, oc 0.4.0.** Fifteen sessions.
 
 | tool | success | correct | turns | input tokens | total tokens | total cost USD | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -226,20 +142,21 @@ Claude Code headless, run on 2026-08-23 with oc 0.4.0, five tasks times three to
 | webfetch | 5/5 ✅ | 5/5 ✅ | 25 | 128,792 | 766,491 | 0.3727 | 14 |
 | websearch | 5/5 ✅ | 5/5 ✅ | 27 | 160,431 | 870,953 | 0.5243 | 22 |
 
-All three conditions answered all five questions correctly, so this is a cost result, not an accuracy one. The input column is the fresh context each tool put in front of the model, which is the number the page size drives: `oc`'s 500 token budget keeps it flat at roughly 1,100 tokens per task, while `WebFetch` pays for whatever the article weighs, 6,379 tokens on a short stub and 39,264 on the German Berlin article. The totals sit closer together because they are dominated by cache reads of the agent's own prompt, and the per-task rows show the spread growing with the page: `oc` cost 5.7x less input than `WebFetch` on the shortest article and 35x less on the longest. `WebSearch` was given only the question, never the article URL, which is the honest way to use that tool and part of why it costs the most; One wrinkle to know when reading the full rows: Claude Code's model router picked `claude-haiku-4-5` for three of the fifteen sessions (one webfetch, two websearch), visible in the model column; the ranking does not change if you compare only the sonnet rows.
-
-The same five lookups through codex (2026-08-24, oc 0.4.0, `gpt-5.6-sol` at xhigh, `webfetch` skipped since codex has no equivalent), from [results/agent-latest-wiki-codex.md](results/agent-latest-wiki-codex.md):
+**Codex, `gpt-5.6-sol` at xhigh, 2026-08-24, oc 0.4.0.** `webfetch` skipped: codex has no fetch-one-URL tool.
 
 | tool | success | correct | turns | input tokens | total tokens | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | oc-wiki | 5/5 | 5/5 | 13 | 34,189 | 165,460 | 19 |
 | websearch | 5/5 | 4/5 | 13 | 49,255 | 193,290 | 16 |
 
-Here the result is accuracy as well as cost: codex's own web search answered the German-Wikipedia population question with a stale number the current article no longer shows, while `oc wiki lang de Berlin` read the infobox and got it right, at fewer input tokens per task.
+- **On Claude this is a cost result, not an accuracy one.** All three conditions got 5/5. oc's 500 token budget keeps its fresh input flat at roughly 1,100 tokens per task, while WebFetch pays for whatever the article weighs: 6,379 tokens on a short stub, 39,264 on the German Berlin article, a 5.7x to 35x per-task spread. The totals sit closer together because cache reads of the agent's own prompt dominate them.
+- **On Codex it is an accuracy result too.** Codex's web search answered the Berlin question with a stale population the current article no longer shows. `oc wiki lang de Berlin` read the infobox and got it right, on fewer input tokens per task.
 
-### Latest docs results
+### Language docs: `oc docs` against WebFetch and WebSearch
 
-Claude Code headless, run on 2026-08-24 with the language docs branch of oc (unreleased at the time and shimmed onto PATH as the README above describes; it has since shipped as 0.5.0), eleven tasks times three tool conditions, thirty-three agent sessions. Full rows with each agent's answer are in [results/agent-latest-docs.md](results/agent-latest-docs.md).
+One canonical lookup per language shortcut oc ships: the default of `json.dumps`'s `sort_keys` (Python), `Array.prototype.at` with a negative index (MDN), the option `fs.rm` needs for a non-empty directory (Node.js), `Array#dig` on a nil step (Ruby), the `json:"-"` struct tag (Go), what `Vec::pop` returns (Rust), what `Optional.get` throws (Java), whether `array_filter` keeps keys (PHP), what `Partial<Type>` does (TypeScript), what `vector::at` throws (C++ via cppreference), and `String.IsNullOrWhiteSpace` on spaces (.NET via Microsoft Learn). Same conditions and grading as the wiki suite.
+
+**Claude Code, `claude-sonnet-5`, 2026-08-24, oc 0.5.0** (the language docs branch, shimmed onto PATH before it shipped). Thirty-three sessions.
 
 | tool | success | correct | turns | input tokens | total tokens | total cost USD | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -247,26 +164,68 @@ Claude Code headless, run on 2026-08-24 with the language docs branch of oc (unr
 | webfetch | 11/11 | 10/11 | 55 | 203,489 | 1,607,034 | 0.7434 | 11 |
 | websearch | 11/11 ✅ | 11/11 ✅ | 55 | 209,782 | 1,613,874 | 0.8857 | 15 |
 
-The one wrong answer is an access result: cppreference.com answers `WebFetch` with 403 Forbidden (it did so again on a retry), while oc's Chrome impersonation reads the same page, so `webfetch` reported the block instead of the exception `vector::at` throws. Everywhere else all three tools were right and the difference is cost. oc's fresh input is flat at roughly 1,175 tokens per task whatever the page weighs, while `WebFetch` pays for the page: 8,604 tokens on the light PHP manual page and 39,613 on Ruby's `Array` class, a 7x to 34x per-task spread against oc. Across the suite that lands at 23% cheaper than `WebFetch` and 35% cheaper than `WebSearch` in dollars, at the same or better accuracy.
-
-The same eleven lookups through codex (2026-08-24, same shimmed oc, `gpt-5.6-sol` at xhigh, `webfetch` skipped since codex has no equivalent), from [results/agent-latest-docs-codex.md](results/agent-latest-docs-codex.md):
+**Codex, `gpt-5.6-sol` at xhigh, 2026-08-24, same oc.** `webfetch` skipped.
 
 | tool | success | correct | turns | input tokens | total tokens | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | oc-docs | 11/11 | 11/11 | 39 | 155,700 | 481,628 | 18 |
 | websearch | 11/11 | 11/11 | 24 | 116,961 | 406,312 | 11 |
 
-Here the built in tool holds its own: these are exactly the canonical facts a search snippet already contains, and codex's web search answered most tasks in two turns without opening any page, finishing 16% cheaper than reading the docs through oc. The shortcut still buys determinism (it reads the actual reference page rather than trusting a snippet, which is what decided the wiki suite's stale-population question), but on well indexed one-fact lookups codex's own search is already efficient, and honest numbers say so.
+- **On Claude, oc is 23% cheaper than WebFetch and 35% cheaper than WebSearch in dollars, at equal or better accuracy.** Its fresh input is flat at roughly 1,175 tokens per task whatever the page weighs; WebFetch pays 8,604 on the light PHP manual page and 39,613 on Ruby's `Array` class, a 7x to 34x per-task spread. WebFetch's one wrong answer is an access result: cppreference.com returned 403 Forbidden to it, twice, while oc's Chrome impersonation reads the same page.
+- **On Codex the built-in tool wins, 16% cheaper.** These are exactly the canonical facts a search snippet already contains, and Codex's web search answered most tasks in two turns without opening a page. The shortcut still buys determinism, since it reads the actual reference page rather than trusting a snippet, which is what decided the Berlin question above. But on well-indexed one-fact lookups Codex's own search is already efficient, and honest numbers say so.
 
-## Tasks
+## Reading the numbers
 
-Every task in both suites is documented in [TASKS.md](TASKS.md): what each page is, why it was chosen, what it turned out to measure, per task token counts for both agents, and what the suite deliberately does not cover.
+- **Compare rows within a table, never across agents.** Every Claude Code total includes roughly 60k tokens of session overhead per run, mostly cached reads of its system prompt, plus a couple of turns to load the tool's skill. Codex's per-session overhead is much smaller, so its totals run well below the Claude tables. Differences between rows are the signal, not the absolute figures.
+- **Almost everything is cache reads.** The agent re-reads its whole conversation every turn, so a bloated page is paid for again on every turn that follows it. That snowball is why raw curl's 13-turn Reddit failure costs 400k tokens, why every tool's multi step tier costs more than its single page tier, and why Playwright MCP's doubles.
+- **"Success" means the run finished.** In the browse suite a politely reported block page counts as a success. The wiki and docs suites grade every answer against an `expect` regex, and the ✅ (best in column) is only awarded among conditions that got every answer right, so a tool that skipped work by failing cannot win a token column.
+- **The conditions are not handed identical inputs.** WebFetch and oc are given the starting URL; WebSearch gets the question and has to find the page itself, which is what that tool is for but is a different job, and part of why it costs the most.
+- **Codex differs from Claude Code in ways that shape its tables.** No allowed-tools equivalent, so the one-tool restriction is prompt-only; it cannot load skills, so the same skill body rides along in the prompt; no per-run cost on a ChatGPT plan; no turn cap; and its turns count completed tool calls and messages, since codex reports one turn per session. Its own web search stands in for WebSearch via `-c tools.web_search=true`; `webfetch` is skipped rather than approximated.
+- **Claude Code's model router** picked `claude-haiku-4-5` for three of the fifteen wiki sessions and one docs session, visible in the model column of the full rows. The rankings do not change on the Sonnet rows alone.
+- **Live sites are noisy.** Numbers move between runs, and a site may block or change at any time. Compare orders of magnitude, not single-digit percentages.
 
-Tasks live in `tasks.json`: an id, a URL, and what an agent would want from the page. Add tasks that represent real agent work (read an article, scan search results, extract a discussion), not synthetic best cases for any one tool.
+## What is measured
 
-Agent tasks live in `agent-tasks.json`: an id, a `tier` (`single page` or `multi step`), a URL to start from, a goal written as a question, and an optional `maxTurns`. A multi step goal should force navigation the agent cannot shortcut, and its answer should be a fact that is present in the second page's HTML, not one a JavaScript widget renders, or the task measures headless browsing rather than the tool.
+The page view suite reports what oc shows agents under `--verbose`, with token usage on top:
 
-Wiki tasks live in `wiki-tasks.json` (and docs tasks in `docs-tasks.json`, same shape) and add two fields: `term`, the thing someone would look up, and `expect`, a regex for the fact a correct answer must contain, with `expectNote` spelling that fact out in prose for whoever reads the file next. Verify an `expect` against the live article before trusting it: Berlin's population in the German article was 3.700.577 at the last check, not the 3.9 million a guess would have graded against.
+- **Tokens**: chars / 4 over the text the agent must ingest, the same estimator oc uses. The oc adapters run with `-v` and read oc's metrics line from stderr, so stdout, the text an agent would read, is exactly what gets counted.
+- **Speed**: wall clock end to end, with the fetch and process split where the adapter reports it.
+- **HTTP status**: what the site actually answered, so a block or a challenge page shows up as itself.
+- **Resources**: bytes over the network and memory used, where the adapter reports them.
+- **Model**: `none` for deterministic adapters; the agent suites fill it in, so the same tool can be compared across models.
+
+The agent suites run Claude Code headless (`claude -p`, JSON output) or `codex exec` (`--json` event stream) once per tool condition and record success, turns, wall time, cost in USD where the agent reports it, and full token usage per model: input, output, cache read, cache creation. Each condition ships a matching [skill](.claude/skills) documenting its tool and is allowed exactly its own, so every agent starts from the same quality of tool documentation instead of whatever the model happens to know. The default turn cap is 12; a task may raise it with `maxTurns`.
+
+## Methods compared
+
+| adapter | what it represents |
+| --- | --- |
+| `oc-open` | oc compact view, the default agent path |
+| `oc-raw` | oc whole-page markdown |
+| `raw-fetch` | naive agent behavior: fetch the URL, read the raw HTML |
+| `jina-reader` | [Jina Reader](https://jina.ai/reader), a hosted URL-to-markdown service popular in agent stacks (keyless free tier) |
+| `lynx-dump` | `lynx -dump`, the 1992 text browser, the oldest text-only baseline (needs lynx) |
+| `playwright-mcp` | [Playwright MCP](https://github.com/microsoft/playwright-mcp): what an MCP agent ingests per `browser_navigate`, the tool response plus the accessibility-tree snapshot it points at (needs `npx @playwright/mcp install-browser chrome-for-testing` once) |
+| `browser-use` | [Browser Use](https://github.com/browser-use/browser-use): the browser state message it composes for its model on every step, extracted headless via `uvx` (needs [uv](https://docs.astral.sh/uv)) |
+| `playwright-html` | plain [Playwright](https://playwright.dev): JS-rendered page HTML from headless Chromium, what a script-your-own-browser agent reads (needs `uvx --with playwright playwright install chromium` once) |
+| `selenium-html` | plain [Selenium](https://www.selenium.dev): JS-rendered `page_source`; Selenium Manager provisions its own chrome-for-testing on first run |
+| `claude-computer-use` | screenshot floor for [Claude computer use](https://docs.claude.com/en/docs/agents-and-tools/computer-use): one real 1024x768 screenshot, priced with Anthropic's image-token formula (width x height / 750) |
+| `openai-computer-use` | the same screenshot priced with [OpenAI's image formula](https://platform.openai.com/docs/guides/images-vision) (85 base + 170 per 512px tile); shares one memoized capture with the row above, hence ~0 ms |
+
+The tool-driven rows measure the per-page-view payload those tools hand their model, which is the same floor whatever the model. They are floors in a second sense too: a real agent re-reads a fresh snapshot or screenshot after every click and scroll, so a five-step task pays those tokens five times, where oc pays its budget once per command.
+
+Browser Use and the computer-use rows are left out of the browse suite on purpose. Computer use is a priced screenshot floor, not a tool an agent can call; benchmarking it means driving a vendor's own loop and reading that API's usage instead. Browser Use ships an MCP server, but its content extraction runs its own model (`Error: LLM not initialized (set OPENAI_API_KEY)`), invisible to the outer agent's usage JSON, so its token column would report a fraction of the real cost, and restricting it to model-free primitives would make it a Playwright MCP clone with the interesting part switched off. Both belong in a table of their own.
+
+**Not measured yet, adapters welcome:** [Firecrawl](https://firecrawl.dev) (needs an API key), [Trafilatura](https://trafilatura.readthedocs.io) and [readability-cli](https://gitlab.com/gardenappl/readability-cli), [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp), and the agent-browsing frameworks [Magnitude](https://github.com/magnitudedev/magnitude), [Notte](https://github.com/nottelabs/notte), [Stagehand](https://github.com/browserbase/stagehand) and [Skyvern](https://github.com/Skyvern-AI/skyvern), which all need a model API key to do anything measurable. **Not measurable:** consumer agentic browsers (ChatGPT Atlas, Perplexity Comet, Claude for Chrome, Gemini in Chrome, Dia, Fellou) have no CLI and no way to meter their token usage from outside. If one grows a scriptable interface, it moves up a tier.
+
+## Contributing
+
+- **An adapter** is one file in `adapters/` exporting `run(url)` and returning `{ output, bytes }`, plus `status`, `fetchMs`, `processMs` and `memMB` when the method can report them. An adapter with a model in the loop also exports `model` (for example `claude-sonnet-5`), so one tool can appear once per model it was tested with.
+- **A page task** (`tasks.json`) is an id, a URL, and what an agent would want from the page. Add tasks that represent real agent work (read an article, scan search results, extract a discussion), not synthetic best cases for any one tool.
+- **An agent task** (`agent-tasks.json`) adds a `tier` (`single page` or `multi step`), a goal written as a question, and an optional `maxTurns`. A multi step goal should force navigation the agent cannot shortcut, and its answer should be a fact present in the second page's HTML, not one a JavaScript widget renders, or the task measures headless browsing rather than the tool.
+- **A lookup task** (`wiki-tasks.json`, `docs-tasks.json`) adds `term`, the thing someone would look up, and `expect`, a regex for the fact a correct answer must contain, with `expectNote` spelling it out in prose. Verify `expect` against the live page first: Berlin's population in the German article was 3.700.577 at the last check, not the 3.9 million a guess would have graded against.
+
+[TASKS.md](TASKS.md) explains what earns a task its place and what the suites deliberately do not cover.
 
 ## Contributors
 
