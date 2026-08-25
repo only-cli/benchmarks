@@ -239,7 +239,7 @@ Here the result is accuracy as well as cost: codex's own web search answered the
 
 ### Latest docs results
 
-Claude Code headless, run on 2026-08-24 with the language docs branch of oc (unreleased at the time, shimmed onto PATH as the README above describes), eleven tasks times three tool conditions, thirty-three agent sessions. Full rows with each agent's answer are in [results/agent-latest-docs.md](results/agent-latest-docs.md).
+Claude Code headless, run on 2026-08-24 with the language docs branch of oc (unreleased at the time and shimmed onto PATH as the README above describes; it has since shipped as 0.5.0), eleven tasks times three tool conditions, thirty-three agent sessions. Full rows with each agent's answer are in [results/agent-latest-docs.md](results/agent-latest-docs.md).
 
 | tool | success | correct | turns | input tokens | total tokens | total cost USD | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
