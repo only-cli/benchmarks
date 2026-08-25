@@ -1,90 +1,98 @@
 | task | tool | model | ok | turns | in | out | cache read | cache write | total tokens | cost USD | s | answer |
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| hn-top | oc | claude-sonnet-5 | yes | 4 | 1086 | 169 | 62335 | 34097 | 97687 | 0.1516 | 17 | The #1 story on Hacker News right now is "The End of an Athlon." |
-| hn-top | raw-curl | claude-sonnet-5 | yes | 4 | 1013 | 255 | 89072 | 3814 | 94154 | 0.0543 | 12 | The #1 story on Hacker News right now is "GrapheneOS in 2027 available on high-e |
-| hn-top | lynx | claude-sonnet-5 | yes | 4 | 1009 | 176 | 88965 | 3927 | 94077 | 0.0538 | 8 | The #1 story on Hacker News right now is "Turbovec – Google's TurboQuant for vec |
-| hn-top | jina-reader | claude-sonnet-5 | yes | 4 | 1023 | 198 | 89128 | 11407 | 101756 | 0.0990 | 35 | "GrapheneOS in 2027 available on high-end Motorola phones" is currently the #1 s |
-| hn-top | playwright-mcp | claude-sonnet-5 | yes | 7 | 1015 | 568 | 185678 | 5971 | 193232 | 0.1009 | 24 | "GrapheneOS in 2027 available on high-end Motorola phones" |
-| gh-search | oc | claude-sonnet-5 | yes | 4 | 1097 | 230 | 89888 | 6885 | 98100 | 0.0489 | 9 | The first result is **gokcehan/lf** ("Terminal file manager"), with roughly **9. |
-| gh-search | raw-curl | claude-sonnet-5 | yes | 12 | 1040 | 1828 | 346788 | 7428 | 357084 | 0.1770 | 38 | The first result is **gokcehan/lf**, a terminal file manager written in Go, with |
-| gh-search | lynx | claude-sonnet-5 | yes | 5 | 1022 | 319 | 121251 | 6306 | 128898 | 0.0799 | 10 | The first result is **gokcehan/lf** ("Terminal file manager"), with roughly 9.5k |
-| gh-search | jina-reader | claude-sonnet-5 | yes | 4 | 1034 | 225 | 89134 | 3909 | 94302 | 0.0545 | 7 | The Jina Reader tool failed (blocked with an authentication-required error due t |
-| gh-search | playwright-mcp | claude-sonnet-5 | yes | 6 | 1024 | 431 | 153169 | 17934 | 172558 | 0.1609 | 16 | The first result is **gokcehan/lf**, with roughly 9.5k stars. |
-| stock-price | oc | claude-sonnet-5 | yes | 7 | 1101 | 473 | 188788 | 9065 | 199427 | 0.0798 | 16 | AAPL closed at $309.35 (down $1.95, -0.63%) at market close on August 21, 2026 a |
-| stock-price | raw-curl | claude-sonnet-5 | NO | 13 | 1040 | 1947 | 380408 | 17631 | 401026 | 0.2501 | 122 |  |
-| stock-price | lynx | claude-sonnet-5 | NO | 4 | 1018 | 196 | 89116 | 3766 | 94096 | 0.0532 | 10 | lynx isn't installed on this system, so I can't fetch the page — I'm unable to a |
-| stock-price | jina-reader | claude-sonnet-5 | yes | 6 | 1036 | 633 | 156815 | 9655 | 168139 | 0.1154 | 22 | Apple's (AAPL) stock closed at $310.03 (+4.44, +1.45%) on August 18 at 4:00:02 P |
-| stock-price | playwright-mcp | claude-sonnet-5 | yes | 6 | 1022 | 604 | 153833 | 7537 | 162996 | 0.1013 | 24 | Apple's (AAPL) most recent market close price shown on the page was $310.03 (lis |
-| reddit-thread | oc | claude-sonnet-5 | yes | 5 | 1104 | 379 | 122540 | 6739 | 130762 | 0.0563 | 13 | Lynx is recommended most often by commenters in that thread. |
-| reddit-thread | raw-curl | claude-sonnet-5 | yes | 12 | 1045 | 1814 | 347179 | 6899 | 356937 | 0.1737 | 51 | 403 confirmed — this is a block/challenge page, not the actual thread content. I |
-| reddit-thread | lynx | claude-sonnet-5 | yes | 5 | 1027 | 331 | 121217 | 5654 | 128229 | 0.0762 | 12 | Commenters most often recommend w3m. |
-| reddit-thread | jina-reader | claude-sonnet-5 | yes | 4 | 1039 | 233 | 89191 | 4227 | 94690 | 0.0565 | 14 | The Jina reader tool was blocked by Reddit (403 Forbidden), so I can't fetch the |
-| reddit-thread | playwright-mcp | claude-sonnet-5 | yes | 6 | 1029 | 479 | 153921 | 5136 | 160565 | 0.0851 | 20 | The page is blocked by Reddit's network security (403 — "You've been blocked by  |
-| hn-comments | oc | claude-sonnet-5 | yes | 6 | 1105 | 396 | 158924 | 8110 | 168535 | 0.0692 | 15 | The #1 story is "The End of an Athlon," and the top comment (by c0l0) recounts h |
-| hn-comments | raw-curl | claude-sonnet-5 | yes | 5 | 1030 | 374 | 121282 | 8381 | 131067 | 0.0932 | 18 | The #1 story is "GrapheneOS in 2027 available on high-end Motorola phones," and  |
-| hn-comments | lynx | claude-sonnet-5 | yes | 5 | 1026 | 348 | 128970 | 15897 | 146241 | 0.1402 | 13 | The #1 story is "Turbovec – Google's TurboQuant for vector search in Rust," and  |
-| hn-comments | jina-reader | claude-sonnet-5 | yes | 5 | 1040 | 530 | 127865 | 21960 | 151395 | 0.1790 | 20 | The #1 story, "GrapheneOS in 2027 available on high-end Motorola phones," has it |
-| hn-comments | playwright-mcp | claude-sonnet-5 | yes | 9 | 1034 | 880 | 314498 | 28756 | 345168 | 0.2810 | 34 | The story is "GrapheneOS in 2027 available on high-end Motorola phones," and the |
-| gh-repo-detail | oc | claude-sonnet-5 | yes | 6 | 1106 | 407 | 158895 | 9769 | 170177 | 0.0760 | 18 | The first result, gokcehan/lf, is published under the MIT license. |
-| gh-repo-detail | raw-curl | claude-sonnet-5 | yes | 25 | 1071 | 4137 | 939409 | 15918 | 960535 | 0.4404 | 120 | Stopped auto-retrying after ~1 hour of GitHub secondary rate-limiting on all cur |
-| gh-repo-detail | lynx | claude-sonnet-5 | yes | 4 | 1025 | 192 | 92217 | 694 | 94128 | 0.0356 | 10 | lynx is not installed in this environment, so I can't browse the web to complete |
-| gh-repo-detail | jina-reader | claude-sonnet-5 | yes | 6 | 1043 | 406 | 170950 | 9287 | 181686 | 0.1140 | 20 | gokcehan/lf (the first result) is published under the MIT License. |
-| gh-repo-detail | playwright-mcp | claude-sonnet-5 | yes | 21 | 1059 | 2992 | 704835 | 13200 | 722086 | 0.3365 | 91 | I mistakenly kept retrying immediately instead of actually waiting for the sched |
-| ddg-follow | oc | claude-sonnet-5 | yes | 7 | 1124 | 387 | 192106 | 8422 | 202039 | 0.0771 | 15 | "Welcome to The Rust Programming Language, an introductory book about Rust." |
-| ddg-follow | raw-curl | claude-sonnet-5 | yes | 20 | 1077 | 3697 | 650537 | 11279 | 666590 | 0.3193 | 84 | The DuckDuckGo search page returned a bot-detection challenge ("Unfortunately, b |
-| ddg-follow | lynx | claude-sonnet-5 | yes | 5 | 1043 | 303 | 126106 | 10401 | 137853 | 0.1057 | 11 | "Welcome to The Rust Programming Language, an introductory book about Rust." |
-| ddg-follow | jina-reader | claude-sonnet-5 | yes | 5 | 1057 | 307 | 126966 | 20713 | 149043 | 0.1679 | 15 | Welcome to *The Rust Programming Language*, an introductory book about Rust. |
-| ddg-follow | playwright-mcp | claude-sonnet-5 | yes | 6 | 1045 | 574 | 154637 | 5708 | 161964 | 0.0902 | 27 | DuckDuckGo blocked the automated browser with a bot-check challenge, so I can't  |
-| reddit-top-comment | oc | claude-sonnet-5 | yes | 16 | 1127 | 3156 | 631970 | 26032 | 662285 | 0.2631 | 79 | The top post is "I built an English ↔ Claudish translator," and its top comment  |
-| reddit-top-comment | raw-curl | claude-sonnet-5 | NO | 26 | 1074 | 4839 | 857879 | 11718 | 875510 | 0.4013 | 113 |  |
-| reddit-top-comment | lynx | claude-sonnet-5 | NO | 4 | 1026 | 296 | 89133 | 3852 | 94307 | 0.0551 | 12 | lynx isn't installed on this machine, so I can't browse the page as instructed — |
-| reddit-top-comment | jina-reader | claude-sonnet-5 | yes | 4 | 1040 | 232 | 89179 | 4181 | 94632 | 0.0562 | 24 | The page is blocked (403 Forbidden by Reddit's network policy), so I can't fetch |
-| reddit-top-comment | playwright-mcp | claude-sonnet-5 | yes | 6 | 1030 | 498 | 154558 | 5447 | 161533 | 0.0874 | 21 | I can't complete this task: old.reddit.com blocked the Playwright browser with " |
-| youtube-watch | oc | claude-sonnet-5 | yes | 4 | 1095 | 223 | 89857 | 5548 | 96723 | 0.0434 | 10 | The video is "Do schools kill creativity? | Sir Ken Robinson | TED" with roughly |
-| aws-s3-recursive | oc | claude-sonnet-5 | yes | 5 | 1137 | 347 | 122694 | 5744 | 129922 | 0.0521 | 13 | The `--recursive` flag makes `aws s3 cp` copy a directory and everything under i |
-| aws-s3-recursive | raw-curl | claude-sonnet-5 | yes | 4 | 1062 | 271 | 89276 | 7120 | 97729 | 0.0500 | 8 | The `--recursive` flag copies a directory and everything under it, so the full c |
-| aws-s3-recursive | jina-reader | claude-sonnet-5 | yes | 4 | 1072 | 233 | 89354 | 13142 | 103801 | 0.0738 | 11 | The `--recursive` flag copies a directory and everything under it; the full comm |
-| aws-s3-recursive | playwright-mcp | claude-sonnet-5 | yes | 6 | 1062 | 461 | 153539 | 24193 | 179255 | 0.1331 | 15 | The `--recursive` flag makes `aws s3 cp` copy a directory and everything under i |
-| gcloud-instance-flags | oc | claude-sonnet-5 | yes | 6 | 1146 | 404 | 156014 | 6356 | 163920 | 0.0618 | 19 | Confirmed both flags (`--machine-type` at [163] and `--zone` at [205]) exist on  |
-| gcloud-instance-flags | raw-curl | claude-sonnet-5 | NO | 13 | 1087 | 1891 | 382905 | 7200 | 393083 | 0.1253 | 43 |  |
-| gcloud-instance-flags | jina-reader | claude-sonnet-5 | yes | 5 | 1081 | 399 | 121683 | 10011 | 133174 | 0.0694 | 11 | The `--machine-type` flag sets the machine type and `--zone` sets the zone; the  |
-| gcloud-instance-flags | playwright-mcp | claude-sonnet-5 | yes | 8 | 1071 | 607 | 186023 | 7786 | 195487 | 0.0754 | 18 | The machine type is set with `--machine-type=MACHINE_TYPE` and the zone with `-- |
-| azure-hns-flag | oc | claude-sonnet-5 | yes | 5 | 1124 | 300 | 122562 | 5475 | 129461 | 0.0504 | 11 | The flag is `--enable-hierarchical-namespace` (short alias `--hns`). |
-| azure-hns-flag | raw-curl | claude-sonnet-5 | NO | 13 | 1067 | 1809 | 380451 | 6098 | 389425 | 0.1196 | 38 |  |
-| azure-hns-flag | jina-reader | claude-sonnet-5 | yes | 4 | 1059 | 266 | 89325 | 4954 | 95604 | 0.0413 | 8 | `--enable-hierarchical-namespace` (or its shorthand `--hns`), set to `true`, ena |
-| azure-hns-flag | playwright-mcp | claude-sonnet-5 | yes | 7 | 1051 | 514 | 187436 | 9738 | 198739 | 0.0826 | 18 | `--enable-hierarchical-namespace` (alias `--hns`) turns on the hierarchical name |
-| aws-docs-follow | oc | claude-sonnet-5 | yes | 13 | 1158 | 1187 | 406415 | 9777 | 418537 | 0.1334 | 36 | The `--recursive` flag copies a directory recursively, and the page's example is |
-| aws-docs-follow | raw-curl | claude-sonnet-5 | yes | 5 | 1069 | 570 | 126349 | 15706 | 143694 | 0.0948 | 14 | DuckDuckGo is blocking curl with a bot-detection CAPTCHA challenge, so I can't r |
-| aws-docs-follow | jina-reader | claude-sonnet-5 | yes | 5 | 1079 | 400 | 128401 | 21019 | 150899 | 0.1148 | 16 | The flag is `--recursive`, and the page's example for copying a local directory  |
-| aws-docs-follow | playwright-mcp | claude-sonnet-5 | yes | 8 | 1071 | 1042 | 222072 | 25658 | 249843 | 0.1585 | 24 | (Note: the DuckDuckGo search page was blocked by a CAPTCHA, so I navigated direc |
+| hn-top | oc | claude-sonnet-5 | yes | 4 | 1086 | 197 | 84336 | 12024 | 97643 | 0.0680 | 7 | The #1 story on Hacker News right now is "Apple Introduces New Mac Studio with M |
+| hn-top | raw-curl | claude-sonnet-5 | yes | 4 | 1013 | 231 | 89007 | 4734 | 94985 | 0.0400 | 10 | "Apple Introduces New Mac Studio with M5 Max and M5 Ultra" is currently the #1 s |
+| hn-top | lynx | claude-sonnet-5 | yes | 4 | 1009 | 233 | 89035 | 3990 | 94267 | 0.0370 | 9 | The #1 story on Hacker News right now is "Apple Introduces New Mac Studio with M |
+| hn-top | jina-reader | claude-sonnet-5 | yes | 4 | 1023 | 243 | 89083 | 11567 | 101916 | 0.0675 | 10 | The #1 story on Hacker News right now is "Apple Introduces New Mac Studio with M |
+| hn-top | playwright-mcp | claude-sonnet-5 | yes | 7 | 1015 | 582 | 185532 | 5992 | 193121 | 0.0679 | 23 | The #1 story on Hacker News right now is "Apple Introduces New Mac Studio with M |
+| gh-search | oc | claude-sonnet-5 | yes | 4 | 1097 | 215 | 89752 | 6901 | 97965 | 0.0487 | 10 | The first result is **gokcehan/lf** with about 9.5k stars. |
+| gh-search | raw-curl | claude-sonnet-5 | NO | 13 | 1042 | 2402 | 389583 | 9087 | 402114 | 0.1393 | 34 |  |
+| gh-search | lynx | claude-sonnet-5 | yes | 5 | 1022 | 340 | 121507 | 6326 | 129195 | 0.0540 | 10 | The first result is **gokcehan/lf** ("Terminal file manager"), with roughly 9.5k |
+| gh-search | jina-reader | claude-sonnet-5 | yes | 4 | 1034 | 296 | 89125 | 4096 | 94551 | 0.0381 | 7 | The Jina reader tool is blocked from accessing github.com entirely right now (an |
+| gh-search | playwright-mcp | claude-sonnet-5 | yes | 6 | 1024 | 346 | 153712 | 17497 | 172579 | 0.1052 | 13 | The first result is **gokcehan/lf**, with roughly 9.5k stars. |
+| stock-price | oc | claude-sonnet-5 | yes | 7 | 1101 | 615 | 188729 | 9231 | 199676 | 0.0819 | 14 | The market is currently open, so the most recent close shown on the page is the  |
+| stock-price | raw-curl | claude-sonnet-5 | NO | 13 | 1040 | 2184 | 414832 | 13719 | 431775 | 0.1607 | 42 |  |
+| stock-price | lynx | claude-sonnet-5 | yes | 5 | 1020 | 438 | 121083 | 9274 | 131815 | 0.0666 | 14 | The page shows the market as currently open (as of 11:32:28 AM EDT) with a live  |
+| stock-price | jina-reader | claude-sonnet-5 | yes | 6 | 1036 | 618 | 155977 | 8296 | 165927 | 0.0715 | 24 | The page shows the market is currently open (as of 11:32 AM EDT), so the most re |
+| stock-price | playwright-mcp | claude-sonnet-5 | yes | 6 | 1022 | 534 | 153775 | 27110 | 182441 | 0.1455 | 20 | Since the market is currently open (shown as "Market Open" at the time of the sn |
+| reddit-thread | oc | claude-sonnet-5 | yes | 7 | 1104 | 548 | 122377 | 6212 | 130241 | 0.0559 | 12 | Lynx is recommended most often by commenters in that thread. |
+| reddit-thread | raw-curl | claude-sonnet-5 | yes | 5 | 1031 | 436 | 120347 | 4591 | 126405 | 0.0478 | 9 | The page is blocked by Reddit's network policy — curl received a "whoa there, pa |
+| reddit-thread | lynx | claude-sonnet-5 | yes | 5 | 1027 | 402 | 121329 | 8879 | 131637 | 0.0648 | 15 | w3m is mentioned most often and praised repeatedly ("I like w3m the best", "w3m  |
+| reddit-thread | jina-reader | claude-sonnet-5 | yes | 4 | 1039 | 271 | 89141 | 4268 | 94719 | 0.0386 | 8 | The page fetch was blocked (Reddit returned a 403 to the Jina reader), so I can' |
+| reddit-thread | playwright-mcp | claude-sonnet-5 | yes | 6 | 1029 | 515 | 153903 | 5188 | 160635 | 0.0577 | 13 | The page load was blocked (HTTP 403 — "You've been blocked by network security"  |
+| hn-comments | oc | claude-sonnet-5 | yes | 5 | 1103 | 380 | 123938 | 7698 | 133119 | 0.0604 | 9 | The #1 story is "Apple Introduces New Mac Studio with M5 Max and M5 Ultra," and  |
+| hn-comments | raw-curl | claude-sonnet-5 | yes | 5 | 1030 | 363 | 121239 | 7531 | 130163 | 0.0590 | 9 | The #1 story is "Apple Introduces New Mac Studio with M5 Max and M5 Ultra," and  |
+| hn-comments | lynx | claude-sonnet-5 | yes | 6 | 1028 | 455 | 152908 | 5394 | 159785 | 0.0577 | 17 | The #1 story is "Apple Introduces New Mac Studio with M5 Max and M5 Ultra," and  |
+| hn-comments | jina-reader | claude-sonnet-5 | yes | 5 | 1040 | 392 | 128187 | 19536 | 149155 | 0.1087 | 16 | The #1 story is "Apple Introduces New Mac Studio with M5 Max and M5 Ultra," and  |
+| hn-comments | playwright-mcp | claude-sonnet-5 | yes | 9 | 1034 | 795 | 308548 | 28109 | 338486 | 0.1831 | 17 | Found the top comment. The #1 story is "Apple Introduces New Mac Studio with M5  |
+| gh-repo-detail | oc | claude-sonnet-5 | yes | 5 | 1104 | 288 | 124074 | 9562 | 135028 | 0.0670 | 10 | gokcehan/lf is published under the MIT license. |
+| gh-repo-detail | raw-curl | claude-sonnet-5 | yes | 17 | 1055 | 2053 | 520941 | 9802 | 533851 | 0.1650 | 34 | I'll leave those temp files in place rather than risk a blocked destructive oper |
+| gh-repo-detail | lynx | claude-sonnet-5 | yes | 5 | 1027 | 290 | 121810 | 16329 | 139456 | 0.0935 | 13 | The first result, gokcehan/lf, is published under the MIT license. |
+| gh-repo-detail | jina-reader | claude-sonnet-5 | yes | 4 | 1039 | 320 | 89168 | 4132 | 94659 | 0.0385 | 11 | The Jina reader tool is currently blocking access to github.com entirely (return |
+| gh-repo-detail | playwright-mcp | claude-sonnet-5 | yes | 8 | 1033 | 641 | 245302 | 19037 | 266013 | 0.1326 | 23 | gokcehan/lf is published under the MIT license. |
+| ddg-follow | oc | claude-sonnet-5 | yes | 5 | 1120 | 346 | 122961 | 7882 | 132309 | 0.0606 | 13 | The first sentence of the introduction is: "Welcome to The Rust Programming Lang |
+| ddg-follow | raw-curl | claude-sonnet-5 | yes | 11 | 1059 | 1267 | 322094 | 7158 | 331578 | 0.1067 | 31 | Leaving that cleanup aside — the answer: "Welcome to *The Rust Programming Langu |
+| ddg-follow | lynx | claude-sonnet-5 | yes | 5 | 1043 | 299 | 125898 | 13572 | 140812 | 0.0834 | 12 | The first sentence of the introduction is: "Welcome to The Rust Programming Lang |
+| ddg-follow | jina-reader | claude-sonnet-5 | yes | 5 | 1057 | 394 | 126989 | 12318 | 140758 | 0.0796 | 12 | "Welcome to _The Rust Programming Language_, an introductory book about Rust." |
+| ddg-follow | playwright-mcp | claude-sonnet-5 | yes | 8 | 1049 | 875 | 221351 | 6845 | 230120 | 0.0814 | 20 | DuckDuckGo blocked the automated browser with a CAPTCHA challenge ("select all s |
+| reddit-top-comment | oc | claude-sonnet-5 | yes | 8 | 1111 | 906 | 252822 | 20661 | 275500 | 0.1433 | 19 | The top post is **"I built a handwriting notebook app where Claude writes back a |
+| reddit-top-comment | raw-curl | claude-sonnet-5 | yes | 23 | 1068 | 4865 | 759910 | 20135 | 785978 | 0.2822 | 92 | The top post, "I built a handwriting notebook app where Claude writes back and i |
+| reddit-top-comment | lynx | claude-sonnet-5 | yes | 7 | 1032 | 836 | 225052 | 19893 | 246813 | 0.1339 | 26 | The top post is "I built a handwriting notebook app where Claude writes back and |
+| reddit-top-comment | jina-reader | claude-sonnet-5 | yes | 4 | 1040 | 239 | 89147 | 4188 | 94614 | 0.0379 | 9 | The page is blocked — Jina's request to old.reddit.com/r/ClaudeAI/ returned a 40 |
+| reddit-top-comment | playwright-mcp | claude-sonnet-5 | yes | 6 | 1030 | 437 | 153819 | 5099 | 160385 | 0.0565 | 15 | The page returned a 403 — reddit blocked the automated browser ("You've been blo |
+| youtube-watch | oc | claude-sonnet-5 | yes | 4 | 1095 | 238 | 89747 | 5569 | 96649 | 0.0436 | 8 | The video is "Do schools kill creativity? | Sir Ken Robinson | TED" by TED, with |
+| youtube-watch | raw-curl | claude-sonnet-5 | yes | 5 | 1024 | 410 | 120374 | 4061 | 125869 | 0.0454 | 13 | The video is "Do schools kill creativity? | Sir Ken Robinson | TED" with roughly |
+| youtube-watch | lynx | claude-sonnet-5 | yes | 5 | 1020 | 471 | 121259 | 5401 | 128151 | 0.0515 | 11 | The title is "Do schools kill creativity? | Sir Ken Robinson | TED," but lynx co |
+| youtube-watch | jina-reader | claude-sonnet-5 | yes | 4 | 1032 | 263 | 89128 | 18598 | 109021 | 0.0958 | 21 | The video is "Do schools kill creativity? | Sir Ken Robinson | TED" and has abou |
+| youtube-watch | playwright-mcp | claude-sonnet-5 | yes | 8 | 1026 | 649 | 220614 | 11704 | 233993 | 0.0984 | 16 | The video's title is "Do schools kill creativity? | Sir Ken Robinson | TED" and  |
+| aws-s3-recursive | oc | claude-sonnet-5 | yes | 5 | 1137 | 363 | 122530 | 6524 | 130554 | 0.0553 | 13 | The `--recursive` flag makes `aws s3 cp` copy a directory and everything under i |
+| aws-s3-recursive | raw-curl | claude-sonnet-5 | yes | 4 | 1062 | 294 | 89192 | 7885 | 98433 | 0.0533 | 10 | The `--recursive` flag makes `aws s3 cp` copy a directory and everything under i |
+| aws-s3-recursive | lynx | claude-sonnet-5 | yes | 4 | 1058 | 284 | 89198 | 4961 | 95501 | 0.0415 | 8 | The `--recursive` flag copies a directory and everything under it; the full comm |
+| aws-s3-recursive | jina-reader | claude-sonnet-5 | yes | 4 | 1072 | 288 | 89250 | 13194 | 103804 | 0.0745 | 12 | The `--recursive` flag makes `aws s3 cp` copy a directory and everything under i |
+| aws-s3-recursive | playwright-mcp | claude-sonnet-5 | yes | 6 | 1062 | 515 | 153403 | 6071 | 161051 | 0.0611 | 16 | The `--recursive` flag makes `aws s3 cp` copy a directory and everything under i |
+| gcloud-instance-flags | oc | claude-sonnet-5 | yes | 5 | 1144 | 378 | 122558 | 8233 | 132313 | 0.0623 | 11 | Confirmed: the flags are `--machine-type=MACHINE_TYPE` and `--zone=ZONE`, so the |
+| gcloud-instance-flags | raw-curl | claude-sonnet-5 | yes | 12 | 1085 | 1497 | 373861 | 19250 | 395693 | 0.1678 | 26 | That's fine — I'll leave the file; it's not sensitive. Here's the answer: The ma |
+| gcloud-instance-flags | lynx | claude-sonnet-5 | yes | 4 | 1065 | 299 | 89204 | 5668 | 96236 | 0.0445 | 10 | The flags are `--machine-type` and `--zone`; the full command is `gcloud compute |
+| gcloud-instance-flags | jina-reader | claude-sonnet-5 | yes | 12 | 1095 | 1539 | 446148 | 21639 | 470421 | 0.1922 | 37 | That's a permission-mode restriction, not something I can bypass — I'll leave `g |
+| gcloud-instance-flags | playwright-mcp | claude-sonnet-5 | yes | 7 | 1071 | 604 | 180852 | 11976 | 194503 | 0.0911 | 14 | Confirmed `--machine-type` sets the machine type; the `--zone` flag (visible in  |
+| azure-hns-flag | oc | claude-sonnet-5 | yes | 13 | 1140 | 1373 | 394683 | 8135 | 405331 | 0.1263 | 25 | `--enable-hierarchical-namespace` (alias `--hns`). |
+| azure-hns-flag | raw-curl | claude-sonnet-5 | yes | 4 | 1049 | 298 | 89211 | 3921 | 94479 | 0.0375 | 8 | `--hierarchical-namespace` (short form `--hns`), set to `true`, enables the hier |
+| azure-hns-flag | lynx | claude-sonnet-5 | yes | 4 | 1045 | 288 | 89218 | 4652 | 95203 | 0.0403 | 6 | `--enable-hierarchical-namespace` (alias `--hns`) turns on the hierarchical name |
+| azure-hns-flag | jina-reader | claude-sonnet-5 | yes | 4 | 1059 | 293 | 89270 | 4773 | 95395 | 0.0409 | 10 | `--enable-hierarchical-namespace` (alias `--hns`) turns on the hierarchical name |
+| azure-hns-flag | playwright-mcp | claude-sonnet-5 | yes | 6 | 1049 | 404 | 154074 | 8541 | 164068 | 0.0700 | 11 | `--enable-hierarchical-namespace` (alias `--hns`) enables the hierarchical names |
+| aws-docs-follow | oc | claude-sonnet-5 | yes | 7 | 1146 | 481 | 193098 | 8657 | 203382 | 0.0791 | 12 | The recursive-copy flag is `--recursive`, and the page's Example 7 command for c |
+| aws-docs-follow | raw-curl | claude-sonnet-5 | yes | 10 | 1079 | 1296 | 320572 | 12898 | 335845 | 0.1297 | 29 | That cleanup was blocked by the sandbox (likely requires manual approval); the f |
+| aws-docs-follow | lynx | claude-sonnet-5 | yes | 5 | 1065 | 370 | 126872 | 21601 | 149908 | 0.1165 | 9 | The flag is `--recursive`, and the page's local-directory-to-bucket example is ` |
+| aws-docs-follow | jina-reader | claude-sonnet-5 | yes | 5 | 1079 | 475 | 128225 | 20960 | 150739 | 0.1152 | 16 | The `--recursive` flag copies a directory recursively, and the page's example fo |
+| aws-docs-follow | playwright-mcp | claude-sonnet-5 | yes | 8 | 1071 | 651 | 221595 | 25331 | 248648 | 0.1532 | 17 | The recursive-copy flag is `--recursive`; the page's example for copying a local |
 
 ### Summary
 | tool | model | success | turns | output tokens | total tokens | total cost USD | avg s |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| oc | claude-sonnet-5 | 13/13 ✅ | 88 | 8058 | 2667575 | 1.1630 | 21 |
-| raw-curl | claude-sonnet-5 | 8/12 | 152 | 12946 | 2807790 | 1.4027 | 55 |
-| lynx | claude-sonnet-5 | 6/8 | 36 | 1669 | 729426 | 0.4914 | 11 |
-| jina-reader | claude-sonnet-5 | 12/12 ✅ | 56 ✅ | 4062 ✅ | 1519121 ✅ | 1.1418 ✅ | 17 ✅ |
-| playwright-mcp | claude-sonnet-5 | 12/12 ✅ | 96 | 9650 | 2903426 | 1.6929 | 28 |
+| oc | claude-sonnet-5 | 13/13 ✅ | 79 | 6328 | 2169710 | 0.9524 | 13 |
+| raw-curl | claude-sonnet-5 | 11/13 | 126 | 13010 | 3053279 | 1.1342 | 27 |
+| lynx | claude-sonnet-5 | 13/13 ✅ | 64 ✅ | 5005 ✅ | 1738779 ✅ | 0.8853 ✅ | 12 ✅ |
+| jina-reader | claude-sonnet-5 | 13/13 ✅ | 65 | 5631 | 1865679 | 0.9991 | 15 |
+| playwright-mcp | claude-sonnet-5 | 13/13 ✅ | 91 | 7548 | 2706043 | 1.3035 | 17 |
 
 Turns count every run, failures included; token and cost totals count successes only. The ✅ marks the best value in each column among tools that finished every task.
 
 ### Cost per tier: one page versus following a link
 | tool | single page tokens | single page turns | multi step tokens | multi step turns |
 | --- | ---: | ---: | ---: | ---: |
-| oc | 1,046,002 | 40 | 1,621,573 | 48 |
-| raw-curl | 2,089,438 (3 failed) | 71 | 2,777,396 (1 failed) | 81 |
-| lynx | 445,300 (1 failed) | 18 | 472,529 (1 failed) | 18 |
-| jina-reader | 791,466 | 31 | 727,655 | 25 |
-| playwright-mcp | 1,262,832 | 46 | 1,640,594 | 50 |
+| oc | 1,290,372 | 49 | 879,338 | 30 |
+| raw-curl | 1,769,753 (2 failed) | 60 | 2,117,415 | 66 |
+| lynx | 902,005 | 36 | 836,774 | 28 |
+| jina-reader | 1,235,754 | 42 | 629,925 | 23 |
+| playwright-mcp | 1,462,391 | 52 | 1,243,652 | 39 |
 
 Every run in this table counts, failures included.
 
 ### What each tool actually cost, failures included
 ```
-oc             ######################                    2,667,575 tokens  88 turns
-raw-curl       ########################################  4,866,834 tokens  152 turns  4 failed
-lynx           ########                                   917,829 tokens  36 turns  2 failed
-jina-reader    ############                              1,519,121 tokens  56 turns
-playwright-mcp ########################                  2,903,426 tokens  96 turns
+oc             ######################                    2,169,710 tokens  79 turns
+raw-curl       ########################################  3,887,168 tokens  126 turns  2 failed
+lynx           ##################                        1,738,779 tokens  64 turns
+jina-reader    ###################                       1,865,679 tokens  65 turns
+playwright-mcp ############################              2,706,043 tokens  91 turns
 ```
