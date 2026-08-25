@@ -82,11 +82,11 @@ Single page tasks answer a question from one URL (Hacker News front page, a GitH
 
 | tool | success | turns | output tokens | total tokens | total cost USD | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| oc | 6/6 ✅ | 31 | 2121 | 871,909 | 0.7367 | 13 ✅ |
+| oc | 6/6 | 31 | 2121 | 871,909 | 0.7367 | 13 |
 | raw-curl | 4/6 | 61 | 3888 | 1,031,894 | 0.5409 | 39 |
-| lynx | 6/6 ✅ | 29 ✅ | 1967 | 772,831 ✅ | 0.5492 ✅ | 14 |
-| jina-reader | 6/6 ✅ | 30 | 1899 ✅ | 855,243 | 0.7222 | 19 |
-| playwright-mcp | 6/6 ✅ | 48 | 4837 | 1,575,695 | 1.2245 | 29 |
+| lynx | 6/6 | 29 | 1967 | 772,831 | 0.5492 | 14 |
+| jina-reader | 6/6 | 30 | 1899 | 855,243 | 0.7222 | 19 |
+| playwright-mcp | 6/6 | 48 | 4837 | 1,575,695 | 1.2245 | 29 |
 
 **Codex, `gpt-5.6-sol` at xhigh, codex 0.148.0, 2026-08-24, oc 0.4.0.** Thirteen tasks, sixty-five sessions.
 
@@ -138,9 +138,9 @@ Five ways someone actually reaches for Wikipedia: an ambiguous term whose articl
 
 | tool | success | correct | turns | input tokens | total tokens | total cost USD | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| oc-wiki | 5/5 ✅ | 5/5 ✅ | 22 ✅ | 5,535 ✅ | 549,823 ✅ | 0.2692 ✅ | 11 ✅ |
-| webfetch | 5/5 ✅ | 5/5 ✅ | 25 | 128,792 | 766,491 | 0.3727 | 14 |
-| websearch | 5/5 ✅ | 5/5 ✅ | 27 | 160,431 | 870,953 | 0.5243 | 22 |
+| oc-wiki | 5/5 | 5/5 | 22 | 5,535 | 549,823 | 0.2692 | 11 |
+| webfetch | 5/5 | 5/5 | 25 | 128,792 | 766,491 | 0.3727 | 14 |
+| websearch | 5/5 | 5/5 | 27 | 160,431 | 870,953 | 0.5243 | 22 |
 
 **Codex, `gpt-5.6-sol` at xhigh, 2026-08-24, oc 0.4.0.** `webfetch` skipped: codex has no fetch-one-URL tool.
 
@@ -160,9 +160,9 @@ One canonical lookup per language shortcut oc ships: the default of `json.dumps`
 
 | tool | success | correct | turns | input tokens | total tokens | total cost USD | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| oc-docs | 11/11 ✅ | 11/11 ✅ | 55 | 12,965 ✅ | 1,446,195 ✅ | 0.5731 ✅ | 9 ✅ |
+| oc-docs | 11/11 | 11/11 | 55 | 12,965 | 1,446,195 | 0.5731 | 9 |
 | webfetch | 11/11 | 10/11 | 55 | 203,489 | 1,607,034 | 0.7434 | 11 |
-| websearch | 11/11 ✅ | 11/11 ✅ | 55 | 209,782 | 1,613,874 | 0.8857 | 15 |
+| websearch | 11/11 | 11/11 | 55 | 209,782 | 1,613,874 | 0.8857 | 15 |
 
 **Codex, `gpt-5.6-sol` at xhigh, 2026-08-24, same oc.** `webfetch` skipped.
 
@@ -178,7 +178,7 @@ One canonical lookup per language shortcut oc ships: the default of `json.dumps`
 
 - **Compare rows within a table, never across agents.** Every Claude Code total includes roughly 60k tokens of session overhead per run, mostly cached reads of its system prompt, plus a couple of turns to load the tool's skill. Codex's per-session overhead is much smaller, so its totals run well below the Claude tables. Differences between rows are the signal, not the absolute figures.
 - **Almost everything is cache reads.** The agent re-reads its whole conversation every turn, so a bloated page is paid for again on every turn that follows it. That snowball is why raw curl's 13-turn Reddit failure costs 400k tokens, why every tool's multi step tier costs more than its single page tier, and why Playwright MCP's doubles.
-- **"Success" means the run finished.** In the browse suite a politely reported block page counts as a success. The wiki and docs suites grade every answer against an `expect` regex, and the ✅ (best in column) is only awarded among conditions that got every answer right, so a tool that skipped work by failing cannot win a token column.
+- **"Success" means the run finished.** In the browse suite a politely reported block page counts as a success. The wiki and docs suites grade every answer against an `expect` regex, and the (best in column) is only awarded among conditions that got every answer right, so a tool that skipped work by failing cannot win a token column.
 - **The conditions are not handed identical inputs.** WebFetch and oc are given the starting URL; WebSearch gets the question and has to find the page itself, which is what that tool is for but is a different job, and part of why it costs the most.
 - **Codex differs from Claude Code in ways that shape its tables.** No allowed-tools equivalent, so the one-tool restriction is prompt-only; it cannot load skills, so the same skill body rides along in the prompt; no per-run cost on a ChatGPT plan; no turn cap; and its turns count completed tool calls and messages, since codex reports one turn per session. Its own web search stands in for WebSearch via `-c tools.web_search=true`; `webfetch` is skipped rather than approximated.
 - **Claude Code's model router** picked `claude-haiku-4-5` for three of the fifteen wiki sessions and one docs session, visible in the model column of the full rows. The rankings do not change on the Sonnet rows alone.
