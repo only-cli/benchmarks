@@ -1,0 +1,112 @@
+[
+  {
+    "id": "py-json-sortkeys",
+    "tier": "lookup",
+    "term": "json.dumps sort_keys",
+    "url": "https://docs.python.org/3/library/json.html",
+    "goal": "According to the Python standard library documentation, what is the default value of json.dumps's sort_keys parameter?",
+    "expect": "false",
+    "expectNote": "sort_keys defaults to False",
+    "maxTurns": 15
+  },
+  {
+    "id": "mdn-array-at",
+    "tier": "lookup",
+    "term": "Array.prototype.at",
+    "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at",
+    "goal": "According to MDN, what does Array.prototype.at return when it is given a negative index?",
+    "expect": "end|last",
+    "expectNote": "counts back from the end of the array, so at(-1) returns the last element",
+    "maxTurns": 15
+  },
+  {
+    "id": "node-fs-rm",
+    "tier": "lookup",
+    "term": "fs.rm recursive",
+    "url": "https://nodejs.org/api/fs.html",
+    "goal": "According to the Node.js fs documentation, which option must be set to true for fsPromises.rm to remove a non-empty directory?",
+    "expect": "recursive",
+    "expectNote": "the recursive option",
+    "maxTurns": 15
+  },
+  {
+    "id": "ruby-array-dig",
+    "tier": "lookup",
+    "term": "Array#dig",
+    "url": "https://docs.ruby-lang.org/en/3.4/Array.html",
+    "goal": "According to Ruby's Array documentation, what does Array#dig return when an intermediate step is nil?",
+    "expect": "nil",
+    "expectNote": "returns nil",
+    "maxTurns": 15
+  },
+  {
+    "id": "go-json-dash-tag",
+    "tier": "lookup",
+    "term": "encoding/json field tag \"-\"",
+    "url": "https://pkg.go.dev/encoding/json",
+    "goal": "According to the Go encoding/json package documentation, what happens to a struct field whose json tag is \"-\" when marshaling?",
+    "expect": "omit|ignor|skip",
+    "expectNote": "the field is always omitted",
+    "maxTurns": 15
+  },
+  {
+    "id": "rust-vec-pop",
+    "tier": "lookup",
+    "term": "Vec::pop",
+    "url": "https://doc.rust-lang.org/std/vec/struct.Vec.html",
+    "goal": "According to the Rust standard library documentation, what does Vec::pop return when the vector has elements, and what does it return when the vector is empty?",
+    "expect": "None",
+    "expectNote": "Option<T>: Some(last element), or None when empty",
+    "maxTurns": 15
+  },
+  {
+    "id": "java-optional-get",
+    "tier": "lookup",
+    "term": "Optional.get",
+    "url": "https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/util/Optional.html",
+    "goal": "According to the Java API documentation, which exception does Optional.get throw when no value is present?",
+    "expect": "NoSuchElementException",
+    "expectNote": "NoSuchElementException",
+    "maxTurns": 15
+  },
+  {
+    "id": "php-array-filter-keys",
+    "tier": "lookup",
+    "term": "array_filter",
+    "url": "https://www.php.net/manual/en/function.array-filter.php",
+    "goal": "According to the PHP manual, does array_filter preserve or reindex the keys of the array it returns?",
+    "expect": "preserve",
+    "expectNote": "keys are preserved",
+    "maxTurns": 15
+  },
+  {
+    "id": "ts-partial",
+    "tier": "lookup",
+    "term": "Partial<Type>",
+    "url": "https://www.typescriptlang.org/docs/handbook/utility-types.html",
+    "goal": "According to the TypeScript handbook, what does the Partial<Type> utility type do to the properties of Type?",
+    "expect": "optional",
+    "expectNote": "constructs a type with all properties set to optional",
+    "maxTurns": 15
+  },
+  {
+    "id": "cpp-vector-at",
+    "tier": "lookup",
+    "term": "std::vector::at",
+    "url": "https://en.cppreference.com/cpp/container/vector/at",
+    "goal": "According to cppreference, which exception does std::vector::at throw when the index is out of range?",
+    "expect": "out_of_range",
+    "expectNote": "std::out_of_range",
+    "maxTurns": 15
+  },
+  {
+    "id": "dotnet-isnullorwhitespace",
+    "tier": "lookup",
+    "term": "String.IsNullOrWhiteSpace",
+    "url": "https://learn.microsoft.com/en-us/dotnet/api/system.string.isnullorwhitespace",
+    "goal": "According to the .NET API documentation, what does String.IsNullOrWhiteSpace return for a string that contains only white-space characters?",
+    "expect": "true",
+    "expectNote": "true",
+    "maxTurns": 15
+  }
+]

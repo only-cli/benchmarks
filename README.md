@@ -107,6 +107,17 @@ printf '#!/bin/sh\nexec node /path/to/oc/src/cli.js "$@"\n' > bin/oc
 chmod +x bin/oc && PATH="$PWD/bin:$PATH" node agent-run.js --suite=wiki
 ```
 
+## Language docs benchmark: eleven coding lookups against the built in web tools
+
+The docs suite asks the wiki suite's question about language documentation: when an agent needs one fact from a reference page mid coding task, is a tuned docs shortcut worth anything next to the web tools it already has?
+
+```
+node agent-run.js --suite=docs                    # claude -p
+AGENT_CLI=codex node agent-run.js --suite=docs    # codex exec
+```
+
+Tasks live in `docs-tasks.json`, one canonical lookup per language shortcut oc ships: `json.dumps`'s `sort_keys` default (Python), `Array.prototype.at` with a negative index (MDN), the option `fs.rm` needs for a non-empty directory (Node.js), `Array#dig` on a nil step (Ruby), the `json:"-"` struct tag (Go), what `Vec::pop` returns (Rust), what `Optional.get` throws (Java), whether `array_filter` keeps keys (PHP), what `Partial<Type>` does (TypeScript), what `vector::at` throws (C++ via cppreference), and `String.IsNullOrWhiteSpace` on spaces (.NET via Microsoft Learn). Same three conditions, grading, and caveats as the wiki suite, with the `browse-oc-docs` skill documenting the shortcuts.
+
 ## Latest results
 
 only-cli 0.4.0, Node 22, run on 2026-08-24 against live sites. The suite has grown from six tasks to fifteen since the last recorded run, adding a stock quote page, a subreddit front page, a YouTube watch page, three cloud CLI reference pages, and three language documentation pages (Python's `json` module, MDN's `Array.prototype.map`, Node's `fs` module), so totals are not comparable to earlier tables. All fifteen pages were fetched in one run. Full per-task rows are in [results/latest.md](results/latest.md).
@@ -226,6 +237,27 @@ The same five lookups through codex (2026-08-24, oc 0.4.0, `gpt-5.6-sol` at xhig
 
 Here the result is accuracy as well as cost: codex's own web search answered the German-Wikipedia population question with a stale number the current article no longer shows, while `oc wiki lang de Berlin` read the infobox and got it right, at fewer input tokens per task.
 
+### Latest docs results
+
+Claude Code headless, run on 2026-08-24 with the language docs branch of oc (unreleased at the time, shimmed onto PATH as the README above describes), eleven tasks times three tool conditions, thirty-three agent sessions. Full rows with each agent's answer are in [results/agent-latest-docs.md](results/agent-latest-docs.md).
+
+| tool | success | correct | turns | input tokens | total tokens | total cost USD | avg s |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| oc-docs | 11/11 ✅ | 11/11 ✅ | 55 | 12,965 ✅ | 1,446,195 ✅ | 0.5731 ✅ | 9 ✅ |
+| webfetch | 11/11 | 10/11 | 55 | 203,489 | 1,607,034 | 0.7434 | 11 |
+| websearch | 11/11 ✅ | 11/11 ✅ | 55 | 209,782 | 1,613,874 | 0.8857 | 15 |
+
+The one wrong answer is an access result: cppreference.com answers `WebFetch` with 403 Forbidden (it did so again on a retry), while oc's Chrome impersonation reads the same page, so `webfetch` reported the block instead of the exception `vector::at` throws. Everywhere else all three tools were right and the difference is cost. oc's fresh input is flat at roughly 1,175 tokens per task whatever the page weighs, while `WebFetch` pays for the page: 8,604 tokens on the light PHP manual page and 39,613 on Ruby's `Array` class, a 7x to 34x per-task spread against oc. Across the suite that lands at 23% cheaper than `WebFetch` and 35% cheaper than `WebSearch` in dollars, at the same or better accuracy.
+
+The same eleven lookups through codex (2026-08-24, same shimmed oc, `gpt-5.6-sol` at xhigh, `webfetch` skipped since codex has no equivalent), from [results/agent-latest-docs-codex.md](results/agent-latest-docs-codex.md):
+
+| tool | success | correct | turns | input tokens | total tokens | avg s |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| oc-docs | 11/11 | 11/11 | 39 | 155,700 | 481,628 | 18 |
+| websearch | 11/11 | 11/11 | 24 | 116,961 | 406,312 | 11 |
+
+Here the built in tool holds its own: these are exactly the canonical facts a search snippet already contains, and codex's web search answered most tasks in two turns without opening any page, finishing 16% cheaper than reading the docs through oc. The shortcut still buys determinism (it reads the actual reference page rather than trusting a snippet, which is what decided the wiki suite's stale-population question), but on well indexed one-fact lookups codex's own search is already efficient, and honest numbers say so.
+
 ## Tasks
 
 Every task in both suites is documented in [TASKS.md](TASKS.md): what each page is, why it was chosen, what it turned out to measure, per task token counts for both agents, and what the suite deliberately does not cover.
@@ -234,7 +266,7 @@ Tasks live in `tasks.json`: an id, a URL, and what an agent would want from the 
 
 Agent tasks live in `agent-tasks.json`: an id, a `tier` (`single page` or `multi step`), a URL to start from, a goal written as a question, and an optional `maxTurns`. A multi step goal should force navigation the agent cannot shortcut, and its answer should be a fact that is present in the second page's HTML, not one a JavaScript widget renders, or the task measures headless browsing rather than the tool.
 
-Wiki tasks live in `wiki-tasks.json` and add two fields: `term`, the thing someone would look up, and `expect`, a regex for the fact a correct answer must contain, with `expectNote` spelling that fact out in prose for whoever reads the file next. Verify an `expect` against the live article before trusting it: Berlin's population in the German article was 3.700.577 at the last check, not the 3.9 million a guess would have graded against.
+Wiki tasks live in `wiki-tasks.json` (and docs tasks in `docs-tasks.json`, same shape) and add two fields: `term`, the thing someone would look up, and `expect`, a regex for the fact a correct answer must contain, with `expectNote` spelling that fact out in prose for whoever reads the file next. Verify an `expect` against the live article before trusting it: Berlin's population in the German article was 3.700.577 at the last check, not the 3.9 million a guess would have graded against.
 
 ## Contributors
 

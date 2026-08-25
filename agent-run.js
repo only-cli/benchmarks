@@ -15,6 +15,7 @@
 //   AGENT_CLI=codex node agent-run.js          browse suite via codex exec
 //   node agent-run.js --suite=wiki             wiki suite via claude -p
 //   AGENT_CLI=codex node agent-run.js --suite=wiki   wiki suite via codex exec
+//   node agent-run.js --suite=docs             language docs suite, same shape
 //
 // The wiki suite lines the oc Wikipedia shortcut up against the two web tools
 // Claude Code ships with, so it is the one suite where the conditions are
@@ -102,11 +103,34 @@ const CONDITIONS = [
   },
 ];
 
-// The wiki suite compares the oc Wikipedia shortcut against the two web tools
-// Claude Code ships with, so its conditions are the built in WebFetch and
-// WebSearch rather than the shell readers the browse suite lines up. It runs
-// on its own task file and its own conditions; `node agent-run.js` with no
-// flags still runs the browse suite exactly as before.
+// The wiki and docs suites compare an oc shortcut against the two web tools
+// Claude Code ships with, so their conditions are the built in WebFetch and
+// WebSearch rather than the shell readers the browse suite lines up. Each
+// runs on its own task file and its own conditions; `node agent-run.js` with
+// no flags still runs the browse suite exactly as before.
+const WEBFETCH = {
+  name: 'webfetch',
+  usage: 'the built in WebFetch tool, one url and a prompt per call',
+  skill: 'browse-webfetch',
+  allowed: ['WebFetch'],
+  // Every condition is one web tool only, so each names the others it must
+  // not reach for instead of sharing one blanket list.
+  disallowed: 'WebSearch,Task,TodoWrite',
+  // codex ships no fetch-one-url-through-a-model tool, and standing in curl
+  // would measure a different thing under the same name, so this condition
+  // is skipped rather than approximated when AGENT_CLI=codex.
+  claudeOnly: true,
+};
+const WEBSEARCH = {
+  name: 'websearch',
+  usage: 'the built in WebSearch tool, which returns search result snippets',
+  skill: 'browse-websearch',
+  allowed: ['WebSearch'],
+  disallowed: 'WebFetch,Task,TodoWrite',
+  // codex's own web search, the nearest equivalent to WebSearch. It is off
+  // by default, so the condition turns it on for its runs only.
+  codexArgs: ['-c', 'tools.web_search=true'],
+};
 const WIKI_CONDITIONS = [
   {
     name: 'oc-wiki',
@@ -116,29 +140,27 @@ const WIKI_CONDITIONS = [
     skill: 'browse-oc-wiki',
     allowed: ['Bash(oc:*)'],
   },
+  WEBFETCH,
+  WEBSEARCH,
+];
+
+// The docs suite asks the wiki suite's question about language documentation:
+// when the answer is a fact on a reference page, is a tuned docs shortcut
+// worth anything next to the agent's built in web tools?
+const DOCS_CONDITIONS = [
   {
-    name: 'webfetch',
-    usage: 'the built in WebFetch tool, one url and a prompt per call',
-    skill: 'browse-webfetch',
-    allowed: ['WebFetch'],
-    // Every condition is one web tool only, so each names the others it must
-    // not reach for instead of sharing one blanket list.
-    disallowed: 'WebSearch,Task,TodoWrite',
-    // codex ships no fetch-one-url-through-a-model tool, and standing in curl
-    // would measure a different thing under the same name, so this condition
-    // is skipped rather than approximated when AGENT_CLI=codex.
-    claudeOnly: true,
+    name: 'oc-docs',
+    usage: 'the `oc` commands in Bash, including its language docs shortcuts: '
+      + '`oc py library <module>`, `oc mdn js <page>`, `oc node api <module>`, '
+      + '`oc ruby class <class>`, `oc go pkg <path>`, `oc rust std <path>`, '
+      + '`oc java api <path>`, `oc php fn <name>`, `oc ts handbook <page>`, '
+      + '`oc cpp cpp <path>`, `oc learn dotnet <api>`, `oc <site> search <query>`, '
+      + 'plus `oc do <n>`, `oc find <query>`, `oc read <n>`, `oc next`, and `oc raw`',
+    skill: 'browse-oc-docs',
+    allowed: ['Bash(oc:*)'],
   },
-  {
-    name: 'websearch',
-    usage: 'the built in WebSearch tool, which returns search result snippets',
-    skill: 'browse-websearch',
-    allowed: ['WebSearch'],
-    disallowed: 'WebFetch,Task,TodoWrite',
-    // codex's own web search, the nearest equivalent to WebSearch. It is off
-    // by default, so the condition turns it on for its runs only.
-    codexArgs: ['-c', 'tools.web_search=true'],
-  },
+  WEBFETCH,
+  WEBSEARCH,
 ];
 
 // A suite is a task file plus the conditions worth putting on it, plus the
@@ -146,6 +168,7 @@ const WIKI_CONDITIONS = [
 const SUITES = {
   browse: { tasks: 'agent-tasks.json', conditions: CONDITIONS, out: '' },
   wiki: { tasks: 'wiki-tasks.json', conditions: WIKI_CONDITIONS, out: '-wiki' },
+  docs: { tasks: 'docs-tasks.json', conditions: DOCS_CONDITIONS, out: '-docs' },
 };
 const SUITE = process.argv.find((a) => a.startsWith('--suite='))?.slice('--suite='.length) ?? 'browse';
 if (!SUITES[SUITE]) {

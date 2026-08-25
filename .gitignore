@@ -13,3 +13,5 @@ reddit_thread.md
 /*.md.tmp
 !results/agent-latest-codex.md
 !results/agent-latest-wiki-codex.md
+!results/agent-latest-docs.md
+!results/agent-latest-docs-codex.md

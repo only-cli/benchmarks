@@ -149,6 +149,17 @@ Read the answer column here too. Only oc and Jina Reader actually performed `aws
 - **aws-docs-follow** separates on the entry point rather than the documentation. DuckDuckGo challenged both raw curl and the Playwright browser, so only two of the four tools did the two hops the task describes.
 - **ddg-follow** separates on bot challenges twice over. DuckDuckGo showed the Playwright browser a CAPTCHA under both agents, and blocked raw curl under Codex. Raw curl also needed 16 turns and 499,088 tokens on Claude, and left scratch HTML files in the working directory while doing it.
 
+## Language docs suite: one fact per language
+
+`docs-tasks.json` runs the wiki suite's design over the eleven language references oc ships shortcuts for. Each task is one fact an agent actually stops to look up mid coding session, phrased as a question and graded with an `expect` regex, and each was checked against the live page before it went in. The facts were picked to be stable (a default value, a return type, a documented exception), so the grading should not rot with the next docs release.
+
+What the run separated, from [results/agent-latest-docs.md](results/agent-latest-docs.md) and [results/agent-latest-docs-codex.md](results/agent-latest-docs-codex.md):
+
+- **cpp-vector-at** separates on access, the way reddit-thread does above: cppreference.com answers `WebFetch` with 403 Forbidden, consistently across a retry, while oc's Chrome impersonation reads the page. It is the suite's only wrong answer.
+- **ruby-array-dig**, **rust-vec-pop**, **node-fs-rm**, and **go-json-dash-tag** separate on page weight. `WebFetch` put 31,000 to 40,000 fresh tokens in front of the model for those pages; oc stayed at its flat ~1,175 per task, a 27x to 34x spread.
+- **php-array-filter-keys** and **java-optional-get** are the controls: light pages every tool reads cheaply, where the conditions land within a few percent of each other.
+- Under codex, nothing separates on accuracy and the ranking flips: its web search answered most tasks from result snippets in two turns, 16% cheaper than reading the page through oc. A canonical API fact is exactly what a snippet is good for; the wiki suite's stale-population miss shows where trusting the snippet stops working.
+
 ## What these tasks do not cover
 
 - Pages that only exist after JavaScript runs. Deliberate, as above, but it does mean the suite is kinder to static readers than the modern web is.
