@@ -16,6 +16,7 @@
 //   node agent-run.js --suite=wiki             wiki suite via claude -p
 //   AGENT_CLI=codex node agent-run.js --suite=wiki   wiki suite via codex exec
 //   node agent-run.js --suite=docs             language docs suite, same shape
+//   node agent-run.js --suite=deps             dependency research suite, same shape
 //
 // The wiki suite lines the oc Wikipedia shortcut up against the two web tools
 // Claude Code ships with, so it is the one suite where the conditions are
@@ -163,12 +164,30 @@ const DOCS_CONDITIONS = [
   WEBSEARCH,
 ];
 
+// The deps suite leaves the documentation sites for the pages around a
+// dependency: its repository, release notes, registry entry, support window,
+// the Stack Overflow thread, the spec. No tuned shortcut covers most of them,
+// so it measures the generic renderer against the built in web tools.
+const DEPS_CONDITIONS = [
+  {
+    name: 'oc-deps',
+    usage: 'the `oc` commands in Bash: `oc open <url>` for any page, plus the shortcuts '
+      + '`oc gh repo <owner> <name>`, `oc gh issues <owner> <name>`, `oc so question <id>`, '
+      + 'and `oc do <n>`, `oc find <query>`, `oc read <n>`, `oc next`, and `oc raw`',
+    skill: 'browse-oc-deps',
+    allowed: ['Bash(oc:*)'],
+  },
+  WEBFETCH,
+  WEBSEARCH,
+];
+
 // A suite is a task file plus the conditions worth putting on it, plus the
 // name its results are saved under.
 const SUITES = {
   browse: { tasks: 'agent-tasks.json', conditions: CONDITIONS, out: '' },
   wiki: { tasks: 'wiki-tasks.json', conditions: WIKI_CONDITIONS, out: '-wiki' },
   docs: { tasks: 'docs-tasks.json', conditions: DOCS_CONDITIONS, out: '-docs' },
+  deps: { tasks: 'deps-tasks.json', conditions: DEPS_CONDITIONS, out: '-deps' },
 };
 const SUITE = process.argv.find((a) => a.startsWith('--suite='))?.slice('--suite='.length) ?? 'browse';
 if (!SUITES[SUITE]) {
@@ -441,7 +460,7 @@ if (TIERS.length > 1) {
   out('\n### Cost per tier: one page versus following a link');
   out(`| tool | ${TIERS.map((t) => `${t} tokens | ${t} turns`).join(' | ')} |`);
   out(`| --- | ${TIERS.map(() => '---: | ---:').join(' | ')} |`);
-  for (const cond of CONDITIONS) {
+  for (const cond of suite.conditions) {
     const cells = TIERS.map((tier) => {
       const rows = results.filter((r) => r.tool === cond.name && tierOf(r) === tier);
       const tokens = rows.reduce((sum, r) => sum + (r.tokens ?? 0), 0);
