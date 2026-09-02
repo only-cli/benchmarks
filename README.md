@@ -8,6 +8,7 @@ Reproducible benchmarks for how AI agents read the web. The same live pages and 
 - **Real content on every page it could reach, and an honest failure on the two it could not.** Reddit now sends logged-out readers to a login wall, and every other tool returned that wall, or a 403 block page, as a success. Yahoo Finance refuses plain fetch outright and DuckDuckGo still blocks lynx; oc's Chrome impersonation read both.
 - **Half the cost of Claude Code's built-in WebSearch on Wikipedia lookups**: $0.23 against $0.45 for five questions, both 5/5 correct, on 25x less fresh input.
 - **21% cheaper than WebFetch and 34% cheaper than WebSearch** on eleven language docs lookups, at equal or better accuracy.
+- **10% cheaper than WebFetch and 49% cheaper than WebSearch** on twelve dependency lookups across GitHub, npm, PyPI, RubyGems, crates.io, Docker Hub, Stack Overflow and an RFC, 12/12 correct with no tuned shortcut for most of those sites. WebFetch was refused by npm and Stack Overflow.
 - **Not a clean sweep.** Under Codex, its own web search beat `oc docs` by 16% on those same lookups because the answers were already in the search snippets. On the thirteen-task browse suite lynx used 22% fewer tokens than oc, most of the gap on one reference page where oc's own `find` points the agent at a block `read` cannot open. Both results are below, with the reasons.
 
 ## Quick start
@@ -17,6 +18,7 @@ node run.js                                       # page view suite, no model ne
 node agent-run.js                                 # browse tasks through claude -p
 node agent-run.js --suite=wiki                    # Wikipedia lookups
 node agent-run.js --suite=docs                    # language docs lookups
+node agent-run.js --suite=deps                    # dependency research lookups
 AGENT_CLI=codex node agent-run.js --suite=docs    # any agent suite through codex exec
 node agent-run.js --report-only                   # re-render tables from the saved JSON
 ```
@@ -39,7 +41,7 @@ chmod +x bin/oc && PATH="$PWD/bin:$PATH" node agent-run.js --suite=wiki
 
 Fair warning: every agent run spends real model quota. Thirteen tasks times five tools is sixty-five sessions, a few dollars on Sonnet.
 
-## The four suites
+## The five suites
 
 | suite | question it answers | tasks | oc against | results |
 | --- | --- | --- | --- | --- |
@@ -47,6 +49,7 @@ Fair warning: every agent run spends real model quota. Thirteen tasks times five
 | Browse (`agent-run.js`) | What does a whole task cost a real agent using that tool? | 13 tasks, `agent-tasks.json` | curl, lynx, Jina Reader, Playwright MCP | [claude](results/agent-latest.md), [codex](results/agent-latest-codex.md) |
 | Wikipedia (`--suite=wiki`) | Is `oc wiki` worth anything next to the web tools the agent already has? | 5 lookups, `wiki-tasks.json` | WebFetch, WebSearch | [claude](results/agent-latest-wiki.md), [codex](results/agent-latest-wiki-codex.md) |
 | Language docs (`--suite=docs`) | Same question for `oc docs`, one fact per language | 11 lookups, `docs-tasks.json` | WebFetch, WebSearch | [claude](results/agent-latest-docs.md), [codex](results/agent-latest-docs-codex.md) |
+| Dependency research (`--suite=deps`) | When the fact lives on GitHub, a package registry, Stack Overflow or a spec, with no tuned shortcut, does the generic renderer still pay off? | 12 lookups, `deps-tasks.json` | WebFetch, WebSearch | [claude](results/agent-latest-deps.md) |
 
 Every task is documented in [TASKS.md](TASKS.md): what the page is, why it was chosen, and what it turned out to measure.
 
@@ -177,14 +180,31 @@ One canonical lookup per language shortcut oc ships: the default of `json.dumps`
 - **On Claude, oc is 21% cheaper than WebFetch and 34% cheaper than WebSearch in dollars, at equal or better accuracy.** Its fresh input is flat at roughly 1,180 tokens per task whatever the page weighs; WebFetch pays 8,606 on the light PHP manual page and 39,614 on Ruby's `Array` class, a 7x to 34x per-task spread. WebFetch's one wrong answer is an access result: cppreference.com returned 403 Forbidden to it, twice, while oc's Chrome impersonation reads the same page.
 - **On Codex the built-in tool wins, 16% cheaper.** These are exactly the canonical facts a search snippet already contains, and Codex's web search answered most tasks in two turns without opening a page. The shortcut still buys determinism, since it reads the actual reference page rather than trusting a snippet, which is what decided the Berlin question above. But on well-indexed one-fact lookups Codex's own search is already efficient, and honest numbers say so.
 
+### Dependency research: `oc open` against WebFetch and WebSearch
+
+Twelve lookups on the pages around a dependency, where oc has a tuned shortcut only for GitHub and Stack Overflow and renders the rest generically: the V8 version in Node.js v22.0.0's release notes, Flask's license on its GitHub page, linkedom's license on npm, when requests 2.31.0 shipped on PyPI, what the top Stack Overflow answer blames for a sorted array being faster, the section of RFC 9110 that defines status 308 (a single 1.2 MB page), the first Chrome to ship `:has()` on caniuse, the nginx config path on Docker Hub, serde's license on crates.io (a page rendered entirely by JavaScript), the Node.js line codenamed Jod, and two that start a link away: Rails 7.1.0's release date on RubyGems and Node.js 16's end of life on endoflife.date. Same conditions and grading as the wiki suite.
+
+**Claude Code, `claude-sonnet-5`, 2026-09-02, oc 0.5.1.** Thirty-six sessions. Not yet run on Codex.
+
+| tool | success | correct | turns | input tokens | total tokens | total cost USD | avg s |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| oc-deps | 12/12 | 12/12 | 62 | 13,261 | 1,347,871 | 0.6262 | 10 |
+| webfetch | 12/12 | 10/12 | 63 | 173,779 | 1,495,868 | 0.6996 | 11 |
+| websearch | 12/12 | 12/12 | 69 | 326,088 | 1,806,752 | 1.2247 | 19 |
+
+- **oc is the only condition that got every answer right at the lowest cost**: 10% cheaper than WebFetch and 49% cheaper than WebSearch, with fresh input flat between 1,091 and 1,120 tokens on all twelve tasks. WebFetch put 2,805 to 39,749 fresh tokens in front of the model per page it could read, WebSearch 10,649 to 75,522.
+- **WebFetch's two misses are access, not comprehension.** npmjs.com answered it 403 Forbidden and stackoverflow.com refused it outright, and both times the agent said so instead of guessing. oc's Chrome impersonation read both pages, the same pattern as cppreference in the docs suite and Yahoo Finance in the page view suite.
+- **The generic renderer is not free on hard pages.** oc's two most expensive rows are the two the suite planted: the JavaScript-only crates.io page (8 turns and 190,384 tokens, still the right answer) and the endoflife.date table, where the Node 16 row splits across several numbered blocks and the agent needed 8 turns to see the security support date. On the two follow tasks WebFetch and WebSearch used fewer tokens than oc, 291,968 and 268,652 against 303,409.
+- **WebSearch got 12/12 at nearly twice the price**, and the model router sent seven of its twelve sessions to Haiku, which is cheaper per token, so on Sonnet throughout the gap would be wider still.
+
 ## Reading the numbers
 
 - **Compare rows within a table, never across agents.** Every Claude Code total includes roughly 60k tokens of session overhead per run, mostly cached reads of its system prompt, plus a couple of turns to load the tool's skill. Codex's per-session overhead is much smaller, so its totals run well below the Claude tables. Differences between rows are the signal, not the absolute figures.
 - **Almost everything is cache reads.** The agent re-reads its whole conversation every turn, so a bloated page is paid for again on every turn that follows it. That snowball is why each of raw curl's 13-turn failures costs about 400k tokens, why every tool's multi step tier costs more than its single page tier, and why Playwright MCP's doubles.
-- **"Success" means the run finished.** In the browse suite a politely reported block page counts as a success. The wiki and docs suites grade every answer against an `expect` regex, and cheapest only counts among conditions that got every answer right, since a tool that skipped work by failing would otherwise win every token column.
+- **"Success" means the run finished.** In the browse suite a politely reported block page counts as a success. The wiki, docs, and deps suites grade every answer against an `expect` regex, and cheapest only counts among conditions that got every answer right, since a tool that skipped work by failing would otherwise win every token column.
 - **The conditions are not handed identical inputs.** WebFetch and oc are given the starting URL; WebSearch gets the question and has to find the page itself, which is what that tool is for but is a different job, and part of why it costs the most.
 - **Codex differs from Claude Code in ways that shape its tables.** No allowed-tools equivalent, so the one-tool restriction is prompt-only; it cannot load skills, so the same skill body rides along in the prompt; no per-run cost on a ChatGPT plan; no turn cap; and its turns count completed tool calls and messages, since codex reports one turn per session. Its own web search stands in for WebSearch via `-c tools.web_search=true`; `webfetch` is skipped rather than approximated.
-- **Claude Code's model router** picked `claude-haiku-4-5` for two of the fifteen wiki sessions and four docs sessions, visible in the model column of the full rows. The rankings do not change on the Sonnet rows alone.
+- **Claude Code's model router** picked `claude-haiku-4-5` for two of the fifteen wiki sessions, four docs sessions, and seven of the twelve WebSearch sessions in the deps suite, visible in the model column of the full rows. The rankings do not change on the Sonnet rows alone.
 - **Live sites are noisy.** Numbers move between runs, and a site may block or change at any time. Compare orders of magnitude, not single-digit percentages.
 
 ## What is measured

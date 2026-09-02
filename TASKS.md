@@ -1,11 +1,12 @@
 # Benchmark tasks
 
-Every number in this repo comes from these twenty-eight tasks against live websites. They are listed here so anyone can check that the benchmark is not a set of best cases for oc, and so anyone adding a task knows what a good one looks like.
+Every number in this repo comes from these fifty-six tasks against live websites. They are listed here so anyone can check that the benchmark is not a set of best cases for oc, and so anyone adding a task knows what a good one looks like.
 
-There are two suites, because there are two questions.
+There are two questions, and five task files between them.
 
 - `tasks.json` drives `run.js`, which asks what a method hands an agent for one page view. Eleven methods, fifteen pages.
 - `agent-tasks.json` drives `agent-run.js`, which asks what a whole task costs when a real agent does it with one tool. Five tools, thirteen tasks, run once through Claude Code and once through Codex.
+- `wiki-tasks.json`, `docs-tasks.json`, and `deps-tasks.json` drive the same runner's graded suites (`--suite=wiki|docs|deps`). Each asks the agent question of one slice of the web, with oc against the two web tools Claude Code ships with, and grades every answer: Wikipedia, language documentation, and the pages around a dependency.
 
 ## What earns a task its place
 
@@ -170,6 +171,21 @@ What the run separated, from [results/agent-latest-docs.md](results/agent-latest
 - **php-array-filter-keys** and **java-optional-get** are the controls: light pages every tool reads cheaply, where the conditions land within a few percent of each other.
 - Under codex, nothing separates on accuracy and the ranking flips: its web search answered most tasks from result snippets in two turns, 16% cheaper than reading the page through oc. A canonical API fact is exactly what a snippet is good for; the wiki suite's stale-population miss shows where trusting the snippet stops working.
 
+## Dependency research suite: the pages around a dependency
+
+`deps-tasks.json` takes the wiki and docs design off the documentation sites. When an agent adds or upgrades a dependency it reads the repository page, the release notes, the registry entry, the support window, the Stack Overflow thread, the spec, and the compatibility table, and oc ships a tuned shortcut for almost none of those. The suite asks whether the generic renderer, `oc open` plus `find`, `read`, and `do`, still pays off there, against WebFetch and WebSearch, twelve graded lookups: the V8 version in Node.js v22.0.0's GitHub release notes, Flask's license from its repository page, linkedom's license on npm, the release date of requests 2.31.0 on PyPI, the mechanism named by the top answer on Stack Overflow's "why is processing a sorted array faster" question, the section of RFC 9110 that defines status 308, the first Chrome to ship `:has()` on caniuse, the path of the main config file in the nginx Docker Hub description, serde's license on crates.io, the release line codenamed Jod on nodejs.org, and two that start a link away: Rails 7.1.0's release date from the rails gem page on RubyGems, and Node.js 16's end of life from the endoflife.date home page.
+
+Two rows are there on purpose. crates.io renders its pages entirely with JavaScript, so a reader that cannot run script gets a title and nothing else; the task checks that the tool says so instead of guessing. RFC 9110 is a single 1.2 MB page, the heaviest in any suite, so it shows what each tool does with a document that does not fit.
+
+What the run separated, from [results/agent-latest-deps.md](results/agent-latest-deps.md):
+
+- **npm-package-license** and **so-top-answer** separate on access. npmjs.com answered `WebFetch` with 403 Forbidden and stackoverflow.com refused it, so WebFetch's row is an honest "cannot fetch" on both, its only two misses. oc read both pages through its Chrome impersonation at its usual 1,101 and 1,105 fresh tokens.
+- **rfc-status-section** separates on page weight. The spec is a single 1.2 MB page; `oc find "Permanent Redirect"` then `oc read` landed the section number for 1,108 fresh tokens, WebFetch put 29,649 in front of the model and WebSearch 49,789. All three were right.
+- **crates-license** is the planted JavaScript-only page, and every condition got the right license anyway. oc's agent paid for the detour: 8 turns and 190,384 tokens against four or five turns on every plain page, because the page itself comes back as a title and oc's "no readable content" report, and the fact had to come from somewhere else.
+- **eol-node16** separates on table layout, and against oc. The Node 16 row on endoflife.date spans several numbered blocks, so the first `oc read` shows the release and active-support dates and not the security-support date the task asks for; the agent needed 8 turns and 193,393 tokens to see it. WebFetch read the whole page once for 22,320 fresh tokens and 152,684 in total. It is the one task in the suite where both built-in tools were cheaper than oc.
+- **gh-repo-license**, **caniuse-chrome-has**, and **node-codename** are the controls: light pages where every condition is right, and where oc's edge is one turn (four against five) because the fact is in its first view, 79,686 to 80,600 tokens against WebFetch's 106,223 to 108,420.
+- **rubygems-version-date** is the follow task that went oc's way: `oc do` onto the versions page and `oc read` on the 7.1.0 row for 110,016 tokens, against 139,284 for WebFetch's two fetches.
+
 ## What these tasks do not cover
 
 - Pages that only exist after JavaScript runs. Deliberate, as above, but it does mean the suite is kinder to static readers than the modern web is.
@@ -180,6 +196,6 @@ What the run separated, from [results/agent-latest-docs.md](results/agent-latest
 
 ## Adding a task
 
-Add page view tasks to `tasks.json` as `id`, `url`, and `goal`. Add agent tasks to `agent-tasks.json` as `id`, `tier`, `url`, `goal`, and optionally `maxTurns`.
+Add page view tasks to `tasks.json` as `id`, `url`, and `goal`. Add agent tasks to `agent-tasks.json` as `id`, `tier`, `url`, `goal`, and optionally `maxTurns`. Graded lookups go in `wiki-tasks.json`, `docs-tasks.json`, or `deps-tasks.json` with an `expect` regex and an `expectNote` saying what the right answer is.
 
 Then check three things before trusting the result. Confirm the fact you are asking for is in the served HTML, not rendered by script. Read the answer column, not just the token column, so a block page does not get counted as a cheap win. And rerun the whole suite rather than one row, since live sites move and a task compared against last week's numbers is comparing two different pages.

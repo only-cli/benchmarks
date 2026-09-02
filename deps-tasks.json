@@ -1,0 +1,122 @@
+[
+  {
+    "id": "gh-release-v8",
+    "tier": "lookup",
+    "term": "Node.js v22.0.0 release notes",
+    "url": "https://github.com/nodejs/node/releases/tag/v22.0.0",
+    "goal": "According to the GitHub release notes for Node.js v22.0.0, which V8 version did that release update to?",
+    "expect": "12\\.4\\.254\\.14|12\\.4",
+    "expectNote": "V8 12.4.254.14, the SEMVER-MAJOR deps entry near the top of a very long notes page",
+    "maxTurns": 15
+  },
+  {
+    "id": "gh-repo-license",
+    "tier": "lookup",
+    "term": "pallets/flask",
+    "url": "https://github.com/pallets/flask",
+    "goal": "According to the pallets/flask repository page on GitHub, what license is Flask released under?",
+    "expect": "BSD",
+    "expectNote": "BSD-3-Clause, shown in the repository sidebar",
+    "maxTurns": 15
+  },
+  {
+    "id": "npm-package-license",
+    "tier": "lookup",
+    "term": "linkedom on npm",
+    "url": "https://www.npmjs.com/package/linkedom",
+    "goal": "According to its npm page, what license is the linkedom package published under, and how many dependencies does it list?",
+    "expect": "ISC",
+    "expectNote": "ISC with 5 dependencies; only the license is graded because the count moves with releases",
+    "maxTurns": 15
+  },
+  {
+    "id": "pypi-release-date",
+    "tier": "lookup",
+    "term": "requests 2.31.0 on PyPI",
+    "url": "https://pypi.org/project/requests/2.31.0/",
+    "goal": "According to PyPI, on what date was requests 2.31.0 released?",
+    "expect": "May 22,? 2023|22 May 2023|2023-05-22",
+    "expectNote": "May 22, 2023",
+    "maxTurns": 15
+  },
+  {
+    "id": "so-top-answer",
+    "tier": "lookup",
+    "term": "Stack Overflow 11227809",
+    "url": "https://stackoverflow.com/questions/11227809",
+    "goal": "According to the top answer on this Stack Overflow question, what CPU mechanism explains why processing a sorted array is faster than processing an unsorted one?",
+    "expect": "branch predict",
+    "expectNote": "branch prediction",
+    "maxTurns": 15
+  },
+  {
+    "id": "rfc-status-section",
+    "tier": "lookup",
+    "term": "RFC 9110 308",
+    "url": "https://www.rfc-editor.org/rfc/rfc9110.html",
+    "goal": "In RFC 9110, which section number defines the 308 status code, and what is its reason phrase?",
+    "expect": "15\\.4\\.9",
+    "expectNote": "Section 15.4.9, 308 Permanent Redirect, in a 1.2 MB single page spec",
+    "maxTurns": 15
+  },
+  {
+    "id": "caniuse-chrome-has",
+    "tier": "lookup",
+    "term": "caniuse :has()",
+    "url": "https://caniuse.com/css-has",
+    "goal": "According to caniuse.com, which Chrome version was the first to ship the CSS :has() selector enabled by default rather than behind a flag?",
+    "expect": "\\b105\\b",
+    "expectNote": "Chrome 105; 101 to 104 had it disabled by default",
+    "maxTurns": 15
+  },
+  {
+    "id": "dockerhub-nginx-conf",
+    "tier": "lookup",
+    "term": "nginx image on Docker Hub",
+    "url": "https://hub.docker.com/_/nginx",
+    "goal": "According to the nginx image description on Docker Hub, what is the full path of the main nginx configuration file inside the container?",
+    "expect": "/etc/nginx/nginx\\.conf",
+    "expectNote": "/etc/nginx/nginx.conf",
+    "maxTurns": 15
+  },
+  {
+    "id": "crates-license",
+    "tier": "lookup",
+    "term": "serde on crates.io",
+    "url": "https://crates.io/crates/serde",
+    "goal": "According to crates.io, under which license or licenses is the serde crate published?",
+    "expect": "MIT|Apache",
+    "expectNote": "MIT OR Apache-2.0; the crates.io page is rendered entirely by JavaScript, so this row is the suite's honest failure check",
+    "maxTurns": 15
+  },
+  {
+    "id": "node-codename",
+    "tier": "lookup",
+    "term": "Node.js release lines",
+    "url": "https://nodejs.org/en/about/previous-releases",
+    "goal": "According to the Node.js previous releases page, which release line carries the LTS codename Jod, and on what date was its first release?",
+    "expect": "(^|[^\\d.])v?22\\b",
+    "expectNote": "v22, first released Apr 24, 2024",
+    "maxTurns": 15
+  },
+  {
+    "id": "rubygems-version-date",
+    "tier": "follow",
+    "term": "rails 7.1.0 on RubyGems",
+    "url": "https://rubygems.org/gems/rails",
+    "goal": "Starting from the rails gem page on RubyGems, on what date was Rails 7.1.0 (the final release, not a beta or release candidate) published?",
+    "expect": "Oct(ober)? 0?5,? 2023|0?5 Oct(ober)? 2023|2023-10-05",
+    "expectNote": "October 05, 2023, on the versions page one link away",
+    "maxTurns": 15
+  },
+  {
+    "id": "eol-node16",
+    "tier": "follow",
+    "term": "endoflife.date Node.js 16",
+    "url": "https://endoflife.date/",
+    "goal": "Starting from the endoflife.date home page, find the Node.js page and report the date on which Node.js 16 reached end of life, meaning the end of its security support.",
+    "expect": "11 Sep(tember)? 2023|Sep(tember)? 11,? 2023|2023-09-11",
+    "expectNote": "11 Sep 2023; the row also shows 18 Oct 2022, when active support ended",
+    "maxTurns": 15
+  }
+]
