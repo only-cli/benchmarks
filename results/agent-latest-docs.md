@@ -1,51 +1,51 @@
 | task | tool | model | ok | correct | turns | in | out | cache read | cache write | total tokens | cost USD | s | answer |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| py-json-sortkeys | oc-docs | claude-sonnet-5 | yes | yes | 5 | 1172 | 299 | 127173 | 3294 | 131938 | 0.0427 | 10 | The default value of `sort_keys` in `json.dumps` is `False`. |
-| py-json-sortkeys | webfetch | claude-sonnet-5 | yes | yes | 5 | 11660 | 538 | 121636 | 5115 | 138949 | 0.0606 | 10 | The default value of `sort_keys` for `json.dumps` is `False`. |
-| py-json-sortkeys | websearch | claude-sonnet-5 | yes | yes | 5 | 21639 | 514 | 121382 | 5438 | 148973 | 0.0818 | 15 | The default value of `sort_keys` is `False`. Sources: - [JSON encoder and decode |
-| mdn-array-at | oc-docs | claude-sonnet-5 | yes | yes | 4 | 1180 | 233 | 90618 | 5539 | 97570 | 0.0437 | 7 | With a negative index, `Array.prototype.at` counts back from the end of the arra |
-| mdn-array-at | webfetch | claude-haiku-4-5-20251001 | yes | yes | 5 | 8878 | 647 | 121652 | 5193 | 136370 | 0.0588 | 15 | For a negative index, `Array.prototype.at()` counts back from the end of the arr |
-| mdn-array-at | websearch | claude-sonnet-5 | yes | yes | 5 | 17271 | 719 | 121476 | 5700 | 145166 | 0.0800 | 15 | When given a negative index, `Array.prototype.at()` counts back from the last it |
-| node-fs-rm | oc-docs | claude-sonnet-5 | yes | yes | 6 | 1177 | 371 | 157063 | 6361 | 164972 | 0.0617 | 12 | The `recursive` option must be set to `true`. |
-| node-fs-rm | webfetch | claude-sonnet-5 | yes | yes | 5 | 34167 | 622 | 121654 | 5201 | 161644 | 0.0840 | 12 | The `recursive` option must be set to `true` for `fsPromises.rm` to remove a non |
-| node-fs-rm | websearch | claude-haiku-4-5-20251001 | yes | yes | 5 | 13880 | 716 | 121454 | 5597 | 141647 | 0.0757 | 13 | The `recursive` option must be set to `true` for `fsPromises.rm` to remove a non |
-| ruby-array-dig | oc-docs | claude-sonnet-5 | yes | yes | 6 | 1175 | 290 | 156876 | 6213 | 164554 | 0.0602 | 10 | `Array#dig` returns `nil` if any intermediate step is `nil`. |
-| ruby-array-dig | webfetch | claude-sonnet-5 | yes | yes | 5 | 39613 | 422 | 121613 | 4984 | 166632 | 0.0874 | 11 | Array#dig returns nil if any intermediate step is nil. |
-| ruby-array-dig | websearch | claude-sonnet-5 | yes | yes | 5 | 20430 | 576 | 121445 | 5530 | 147981 | 0.0814 | 13 | It returns `nil`. Sources: - [class Array - Documentation for Ruby 3.4](https:// |
-| go-json-dash-tag | oc-docs | claude-sonnet-5 | yes | yes | 5 | 1171 | 223 | 123721 | 6344 | 131459 | 0.0535 | 10 | A field with a json tag of "-" is always omitted from the marshaled output (the  |
-| go-json-dash-tag | webfetch | claude-sonnet-5 | yes | yes | 5 | 31338 | 413 | 121651 | 4947 | 158349 | 0.0790 | 13 | The field is always omitted from the JSON encoding, regardless of its value. |
-| go-json-dash-tag | websearch | claude-sonnet-5 | yes | yes | 5 | 20359 | 608 | 121439 | 5624 | 148030 | 0.0820 | 19 | A struct field tagged `json:"-"` is always omitted from the JSON output during m |
-| rust-vec-pop | oc-docs | claude-sonnet-5 | yes | yes | 6 | 1187 | 304 | 157335 | 6224 | 165050 | 0.0605 | 10 | `Vec::pop` returns `Some(T)` containing the last element when the vector has ele |
-| rust-vec-pop | webfetch | claude-sonnet-5 | yes | yes | 5 | 39569 | 591 | 121698 | 5192 | 167050 | 0.0893 | 12 | `Vec::pop` returns `Some(T)` with the last element when the vector has elements, |
-| rust-vec-pop | websearch | claude-sonnet-5 | yes | yes | 5 | 22787 | 641 | 121484 | 5521 | 150433 | 0.0842 | 17 | `Vec::pop` returns `Some(T)` containing the last element (removing it from the v |
-| java-optional-get | oc-docs | claude-sonnet-5 | yes | yes | 5 | 1186 | 242 | 123614 | 5773 | 130815 | 0.0514 | 10 | `Optional.get` throws `java.util.NoSuchElementException` when no value is presen |
-| java-optional-get | webfetch | claude-sonnet-5 | yes | yes | 5 | 9090 | 471 | 121694 | 5023 | 136278 | 0.0575 | 11 | `Optional.get()` throws `java.util.NoSuchElementException` when no value is pres |
-| java-optional-get | websearch | claude-sonnet-5 | yes | yes | 5 | 21737 | 585 | 121472 | 5612 | 149406 | 0.0832 | 11 | `Optional.get` throws `NoSuchElementException` if no value is present. Sources:  |
-| php-array-filter-keys | oc-docs | claude-sonnet-5 | yes | yes | 4 | 1173 | 181 | 90560 | 5507 | 97421 | 0.0431 | 7 | array_filter preserves the original array keys (which can leave gaps in indexed  |
-| php-array-filter-keys | webfetch | claude-sonnet-5 | yes | yes | 5 | 8604 | 662 | 121645 | 5239 | 136150 | 0.0589 | 13 | array_filter preserves the original (including numeric) keys rather than reindex |
-| php-array-filter-keys | websearch | claude-sonnet-5 | yes | yes | 5 | 20519 | 630 | 121429 | 5461 | 148039 | 0.0815 | 16 | `array_filter` preserves the original keys (which may leave gaps in numeric indi |
-| ts-partial | oc-docs | claude-sonnet-5 | yes | yes | 6 | 1181 | 293 | 157322 | 6298 | 165094 | 0.0607 | 9 | Partial<Type> constructs a type with all properties of Type set to optional, rep |
-| ts-partial | webfetch | claude-sonnet-5 | yes | yes | 5 | 18501 | 504 | 121669 | 5071 | 145745 | 0.0672 | 10 | `Partial<Type>` constructs a type with all properties of `Type` set to optional. |
-| ts-partial | websearch | claude-sonnet-5 | yes | yes | 5 | 21328 | 564 | 121457 | 5518 | 148867 | 0.0823 | 14 | `Partial<Type>` constructs a type with all properties of `Type` set to optional. |
-| cpp-vector-at | oc-docs | claude-sonnet-5 | yes | yes | 4 | 1172 | 173 | 90553 | 7015 | 98913 | 0.0490 | 8 | std::vector::at throws std::out_of_range when pos >= size(). |
-| cpp-vector-at | webfetch | claude-sonnet-5 | yes | NO | 5 | 1025 | 330 | 124721 | 1791 | 127867 | 0.0364 | 10 | WebFetch failed with HTTP 403 Forbidden for that URL, so I can't retrieve the pa |
-| cpp-vector-at | websearch | claude-sonnet-5 | yes | yes | 5 | 17704 | 465 | 121413 | 5285 | 144867 | 0.0772 | 13 | `std::vector::at` throws `std::out_of_range` when the index is out of range. Sou |
-| dotnet-isnullorwhitespace | oc-docs | claude-sonnet-5 | yes | yes | 4 | 1191 | 175 | 90618 | 6425 | 98409 | 0.0467 | 7 | It returns `true`. |
-| dotnet-isnullorwhitespace | webfetch | claude-sonnet-5 | yes | yes | 5 | 1044 | 356 | 121731 | 8869 | 132000 | 0.0643 | 8 | `String.IsNullOrWhiteSpace` returns `true` for a string that consists exclusivel |
-| dotnet-isnullorwhitespace | websearch | claude-sonnet-5 | yes | yes | 5 | 12128 | 723 | 121503 | 6111 | 140465 | 0.0765 | 14 | `String.IsNullOrWhiteSpace` returns `true` for a string consisting exclusively o |
+| py-json-sortkeys | oc-docs | claude-sonnet-5 | yes | yes | 5 | 1172 | 278 | 94713 | 11997 | 108160 | 0.0708 | 10 | The default value of `sort_keys` in `json.dumps` is `False`. |
+| py-json-sortkeys | webfetch | claude-sonnet-5 | yes | yes | 5 | 11660 | 566 | 97911 | 5150 | 115287 | 0.0561 | 11 | The default value of `sort_keys` in `json.dumps` is `False`. |
+| py-json-sortkeys | websearch | claude-sonnet-5 | yes | yes | 5 | 21927 | 486 | 97661 | 5434 | 125508 | 0.0771 | 12 | The default value of `sort_keys` is `False`. Sources: - [json — JSON encoder and |
+| mdn-array-at | oc-docs | claude-sonnet-5 | yes | yes | 4 | 1180 | 225 | 72821 | 5549 | 79775 | 0.0401 | 7 | Given a negative index, `Array.prototype.at()` counts back from the end of the a |
+| mdn-array-at | webfetch | claude-sonnet-5 | yes | yes | 5 | 8878 | 632 | 97971 | 5175 | 112656 | 0.0541 | 11 | With a negative index, `at()` counts back from the end of the array (i.e., acces |
+| mdn-array-at | websearch | claude-sonnet-5 | yes | yes | 5 | 18272 | 773 | 97765 | 5852 | 122662 | 0.0771 | 14 | When given a negative index, `Array.prototype.at()` counts back from the last it |
+| node-fs-rm | oc-docs | claude-sonnet-5 | yes | yes | 5 | 1175 | 290 | 99841 | 5852 | 107158 | 0.0474 | 9 | The `recursive` option must be set to `true`. |
+| node-fs-rm | webfetch | claude-sonnet-5 | yes | yes | 5 | 34169 | 500 | 97889 | 5064 | 137622 | 0.0780 | 10 | The `recursive` option must be set to `true` for `fsPromises.rm` to remove a non |
+| node-fs-rm | websearch | claude-haiku-4-5-20251001 | yes | yes | 5 | 21925 | 735 | 97721 | 5660 | 126041 | 0.0795 | 13 | The `recursive` option must be set to `true` for `fsPromises.rm()` to remove a n |
+| ruby-array-dig | oc-docs | claude-sonnet-5 | yes | yes | 6 | 1175 | 256 | 127349 | 6289 | 135069 | 0.0543 | 8 | It returns `nil`. |
+| ruby-array-dig | webfetch | claude-sonnet-5 | yes | yes | 5 | 39614 | 465 | 97932 | 5048 | 143059 | 0.0831 | 12 | It returns nil. |
+| ruby-array-dig | websearch | claude-sonnet-5 | yes | yes | 5 | 22941 | 585 | 97724 | 5550 | 126800 | 0.0792 | 16 | It returns `nil`. Sources: - [class Array - RDoc Documentation](https://docs.rub |
+| go-json-dash-tag | oc-docs | claude-sonnet-5 | yes | yes | 5 | 1171 | 247 | 100037 | 6071 | 107526 | 0.0478 | 8 | A struct field tagged `json:"-"` is ignored entirely by the package and never ma |
+| go-json-dash-tag | webfetch | claude-sonnet-5 | yes | yes | 5 | 31345 | 436 | 97922 | 4953 | 134656 | 0.0745 | 11 | The field is always omitted from the JSON output, regardless of its value (note: |
+| go-json-dash-tag | websearch | claude-sonnet-5 | yes | yes | 5 | 21747 | 685 | 97714 | 5686 | 125832 | 0.0792 | 15 | The field is always omitted from the encoding, being treated as if it doesn't ex |
+| rust-vec-pop | oc-docs | claude-sonnet-5 | yes | yes | 6 | 1187 | 398 | 127818 | 6336 | 135739 | 0.0560 | 12 | `Vec::pop` returns `Some(T)` containing the last element when the vector has ele |
+| rust-vec-pop | webfetch | claude-sonnet-5 | yes | yes | 5 | 39569 | 564 | 97931 | 5174 | 143238 | 0.0842 | 14 | `Vec::pop` returns `Some(T)` with the last element when the vector has elements, |
+| rust-vec-pop | websearch | claude-sonnet-5 | yes | yes | 5 | 21371 | 608 | 97759 | 5525 | 125263 | 0.0778 | 12 | `Vec::pop` returns `Some(last_element)` when the vector has elements, and `None` |
+| java-optional-get | oc-docs | claude-sonnet-5 | yes | yes | 7 | 1190 | 348 | 154558 | 6150 | 162246 | 0.0601 | 11 | `java.util.NoSuchElementException`. |
+| java-optional-get | webfetch | claude-sonnet-5 | yes | yes | 5 | 9088 | 433 | 97963 | 4982 | 112466 | 0.0524 | 10 | `Optional.get()` throws `java.util.NoSuchElementException` when no value is pres |
+| java-optional-get | websearch | claude-sonnet-5 | yes | yes | 5 | 19187 | 695 | 97751 | 5760 | 123393 | 0.0771 | 14 | `Optional.get()` throws `NoSuchElementException` when no value is present. Sourc |
+| php-array-filter-keys | oc-docs | claude-sonnet-5 | yes | yes | 4 | 1173 | 208 | 72767 | 5542 | 79690 | 0.0399 | 7 | array_filter preserves the original (including non-consecutive) keys of the arra |
+| php-array-filter-keys | webfetch | claude-haiku-4-5-20251001 | yes | yes | 5 | 8606 | 655 | 97916 | 5210 | 112387 | 0.0539 | 13 | array_filter preserves the original keys (including numeric ones, which can leav |
+| php-array-filter-keys | websearch | claude-sonnet-5 | yes | yes | 5 | 20217 | 617 | 97712 | 5459 | 124005 | 0.0764 | 14 | array_filter preserves the original keys of the array (may leave gaps in numeric |
+| ts-partial | oc-docs | claude-sonnet-5 | yes | yes | 6 | 1181 | 383 | 127674 | 6286 | 135524 | 0.0556 | 9 | It constructs a type with all properties of Type set to optional. |
+| ts-partial | webfetch | claude-sonnet-5 | yes | yes | 5 | 18497 | 587 | 97948 | 5201 | 122233 | 0.0634 | 14 | Partial<Type> constructs a type with all properties of Type set to optional. |
+| ts-partial | websearch | claude-haiku-4-5-20251001 | yes | yes | 5 | 18334 | 725 | 97734 | 5685 | 122478 | 0.0760 | 13 | `Partial<Type>` constructs a type with all properties of `Type` set to optional. |
+| cpp-vector-at | oc-docs | claude-sonnet-5 | yes | yes | 4 | 1172 | 185 | 72765 | 7001 | 81123 | 0.0455 | 6 | `std::vector::at` throws `std::out_of_range` when `pos >= size()`. |
+| cpp-vector-at | webfetch | claude-sonnet-5 | yes | NO | 6 | 1027 | 524 | 124407 | 5211 | 131169 | 0.0519 | 13 | WebFetch failed with HTTP 403 Forbidden on cppreference.com for both URL variant |
+| cpp-vector-at | websearch | claude-sonnet-5 | yes | yes | 5 | 16855 | 718 | 97700 | 5450 | 120723 | 0.0738 | 19 | `std::vector::at` throws `std::out_of_range` when the requested index is not wit |
+| dotnet-isnullorwhitespace | oc-docs | claude-sonnet-5 | yes | yes | 4 | 1191 | 150 | 72801 | 6409 | 80551 | 0.0428 | 6 | It returns `true`. |
+| dotnet-isnullorwhitespace | webfetch | claude-sonnet-5 | yes | yes | 5 | 1044 | 353 | 98010 | 8878 | 108285 | 0.0596 | 9 | `String.IsNullOrWhiteSpace` returns `true` for a string that consists only of wh |
+| dotnet-isnullorwhitespace | websearch | claude-haiku-4-5-20251001 | yes | yes | 5 | 13057 | 822 | 97790 | 6292 | 117961 | 0.0738 | 16 | `String.IsNullOrWhiteSpace` returns `true` for a string that consists only of wh |
 
 ### Summary
 | tool | model | success | correct | turns | output tokens | total tokens | total cost USD | avg s |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| oc-docs | claude-sonnet-5 | 11/11 ✅ | 11/11 ✅ | 55 ✅ | 2784 ✅ | 1446195 ✅ | 0.5731 ✅ | 9 ✅ |
-| webfetch | claude-sonnet-5 | 11/11 | 10/11 | 55 | 5556 | 1607034 | 0.7434 | 11 |
-| websearch | claude-sonnet-5 | 11/11 ✅ | 11/11 ✅ | 55 ✅ | 6741 | 1613874 | 0.8857 | 15 |
+| oc-docs | claude-sonnet-5 | 11/11 ✅ | 11/11 ✅ | 56 | 2968 ✅ | 1212561 ✅ | 0.5605 ✅ | 8 ✅ |
+| webfetch | claude-sonnet-5 | 11/11 | 10/11 | 56 | 5715 | 1373058 | 0.7112 | 12 |
+| websearch | claude-sonnet-5 | 11/11 ✅ | 11/11 ✅ | 55 ✅ | 7449 | 1360666 | 0.8470 | 14 |
 
 Turns count every run, failures included; token and cost totals count successes only. The correct column grades the answer against the fact the task asked for. The ✅ marks the best value in each column among tools that answered every task correctly.
 
 ### What each tool actually cost, failures included
 ```
-oc-docs        ####################################      1,446,195 tokens  55 turns
-webfetch       ########################################  1,607,034 tokens  55 turns
-websearch      ########################################  1,613,874 tokens  55 turns
+oc-docs        ###################################       1,212,561 tokens  56 turns
+webfetch       ########################################  1,373,058 tokens  56 turns
+websearch      ########################################  1,360,666 tokens  55 turns
 ```

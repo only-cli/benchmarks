@@ -2,13 +2,13 @@
 
 Reproducible benchmarks for how AI agents read the web. The same live pages and the same tasks, read eleven ways, [oc](https://github.com/only-cli/oc) among them. Every suite asks one question: how many tokens does the agent have to ingest, how long does it take, and did it actually get the content?
 
-**Where things stand** (oc 0.5.0, August 2026, live sites):
+**Where things stand** (oc 0.5.1, September 2026, live sites):
 
-- **142x fewer tokens than raw HTML** across 15 real pages: 10,936 against 1,552,491. 14x fewer than Jina Reader, 49x fewer than Playwright MCP's accessibility snapshot.
-- **The only reader that returned real content on every page.** Reddit blocked curl, Jina Reader and Playwright; Jina also failed LinkedIn and Yahoo Finance; DuckDuckGo blocked lynx. oc's Chrome impersonation read all fifteen.
-- **Half the cost of Claude Code's built-in WebSearch on Wikipedia lookups**: $0.27 against $0.52 for five questions, both 5/5 correct, on 29x less fresh input.
-- **23% cheaper than WebFetch and 35% cheaper than WebSearch** on eleven language docs lookups, at equal or better accuracy.
-- **Not a clean sweep.** Under Codex, its own web search beat `oc docs` by 16% on those same lookups because the answers were already in the search snippets. On the thirteen-task browse suite lynx used 20% fewer tokens than oc, most of the gap on one reference page where oc's own `find` pointed the agent at the wrong block. Both results are below, with the reasons.
+- **125x fewer tokens than raw HTML** across the twelve real pages both could read: 8,519 against 1,064,474. 15x fewer than Jina Reader, 59x fewer than Playwright MCP's accessibility snapshot.
+- **Real content on every page it could reach, and an honest failure on the two it could not.** Reddit now sends logged-out readers to a login wall, and every other tool returned that wall, or a 403 block page, as a success. Yahoo Finance refuses plain fetch outright and DuckDuckGo still blocks lynx; oc's Chrome impersonation read both.
+- **Half the cost of Claude Code's built-in WebSearch on Wikipedia lookups**: $0.23 against $0.45 for five questions, both 5/5 correct, on 25x less fresh input.
+- **21% cheaper than WebFetch and 34% cheaper than WebSearch** on eleven language docs lookups, at equal or better accuracy.
+- **Not a clean sweep.** Under Codex, its own web search beat `oc docs` by 16% on those same lookups because the answers were already in the search snippets. On the thirteen-task browse suite lynx used 22% fewer tokens than oc, most of the gap on one reference page where oc's own `find` points the agent at a block `read` cannot open. Both results are below, with the reasons.
 
 ## Quick start
 
@@ -25,7 +25,7 @@ Node 20+, no dependencies. Results print as a markdown table and land in `result
 
 | variable | what it does |
 | --- | --- |
-| `OC_BIN` | which oc the page suite runs; defaults to a sibling checkout at `../only-cli`, or `OC_BIN="npx -y @only-cli/oc@0.5.0"` for the published package |
+| `OC_BIN` | which oc the page suite runs; defaults to a sibling checkout at `../only-cli`, or `OC_BIN="npx -y @only-cli/oc@0.5.1"` for the published package |
 | `AGENT_CLI` | `claude` (default) or `codex` |
 | `AGENT_MODEL` | rerun the same conditions on another model |
 | `LYNX_BIN` | where lynx lives if it is not on PATH |
@@ -54,41 +54,42 @@ Every task is documented in [TASKS.md](TASKS.md): what the page is, why it was c
 
 ### Page view: tokens per page, no model in the loop
 
-oc 0.5.0 from npm (`OC_BIN="npx -y @only-cli/oc@0.5.0"`, so oc's timing columns include npx startup on every call), Node 22, 2026-08-24. Fifteen live pages: a news front page, a Reddit thread, search results, a stock quote, cloud and language reference pages.
+oc 0.5.1 from npm (`OC_BIN="npx -y @only-cli/oc@0.5.1"`, so oc's timing columns include npx startup on every call), Node 22, 2026-09-02. Fifteen live pages: a news front page, a Reddit thread, search results, a stock quote, cloud and language reference pages.
 
 | adapter | success | total tokens | avg ms | avg fetch ms | total KB |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| oc-open | 15/15 | 10,936 | 1291 | 439 | 5944 |
-| oc-raw | 15/15 | 257,573 | 1361 | 405 | 5956 |
-| raw-fetch | 15/15 | 1,552,491 | 295 | 295 | 6067 |
-| jina-reader | 13/15 | 148,479 | 3432 | 3939 | 582 |
-| lynx-dump | 14/15 | 276,459 | 489 | 479 | 0 |
-| playwright-mcp | 15/15 | 531,335 | 925 | 924 | 0 |
-| browser-use | 15/15 | 27,645 | 4112 | 1637 | 0 |
-| playwright-html | 15/15 | 1,604,438 | 1295 | 614 | 6269 |
-| selenium-html | 15/15 | 1,678,987 | 1753 | 714 | 6560 |
-| claude-computer-use | 15/15 | 15,735 | 1219 | 585 | 1824 |
-| openai-computer-use | 15/15 | 11,475 | 0 | 585 | 1824 |
+| oc-open | 13/15 | 8,971 | 1014 | 343 | 5498 |
+| oc-raw | 13/15 | 243,686 | 1115 | 355 | 5480 |
+| raw-fetch | 14/15 | 1,240,669 | 250 | 232 | 4848 |
+| jina-reader | 13/15 | 105,198 | 4606 | 2890 | 411 |
+| lynx-dump | 14/15 | 261,435 | 373 | 353 | 0 |
+| playwright-mcp | 15/15 | 531,303 | 806 | 806 | 0 |
+| browser-use | 15/15 | 28,096 | 3483 | 1505 | 0 |
+| playwright-html | 15/15 | 1,592,545 | 1075 | 552 | 6222 |
+| selenium-html | 15/15 | 1,489,893 | 2081 | 846 | 5821 |
+| claude-computer-use | 15/15 | 15,735 | 1059 | 550 | 1802 |
+| openai-computer-use | 15/15 | 11,475 | 0 | 550 | 1802 |
 
-- **oc reads all fifteen pages for 10,936 tokens.** A page that fits in about four times the budget prints whole (the Hacker News front page lands at 1,178); everything larger renders near the 500 token budget however much the page weighs. The three cloud reference pages come in at 502, 488 and 467 tokens against 17,990 to 132,497 raw; the three language docs pages at 496, 481 and 475 against 27,940 to 273,820. The starkest single page is the Yahoo Finance quote: 399,881 tokens raw, 456 through oc, about 880x. Node's `fs` reference is close behind at 273,820 raw against 475, a page even lynx needs 119,604 tokens for.
-- **The rows near oc are floors, not reads.** The computer-use rows price one 1024x768 screenshot per page, a look at the top third before any scrolling and before any prompt or reasoning tokens, which is why the OpenAI row is nominally the smallest. Browser Use's state message carries indexed elements but drops most of the page text. Among tools that actually deliver the content, the gap is 14x to Jina Reader and 49x to Playwright MCP, and the rendered-HTML routes (Playwright, Selenium) cost slightly more than raw fetch plus a browser.
-- **Some success badges are blocks.** Jina's 295 and 283 token Reddit "results" are Reddit's block page ("whoa there, pardner!", a 403 wrapped in a 200). Playwright MCP's 207 and 184 token Reddit snapshots are blocked pages too, and Browser Use came back from both Reddit tasks nearly empty. Lynx was blocked on the DuckDuckGo search; Jina failed LinkedIn and Yahoo Finance outright. oc was the only distilling reader with real content on all fifteen.
+- **oc reads thirteen of fifteen pages for 8,971 tokens.** A page that fits in about four times the budget prints whole (the Hacker News front page lands at 1,065); everything larger renders near the 500 token budget however much the page weighs. The three cloud reference pages come in at 506, 492 and 471 tokens against 17,990 to 133,363 raw; the three language docs pages at 500, 484 and 479 against 27,940 to 275,425. The starkest single page is the YouTube watch page: 345,487 tokens raw, 688 through oc, about 500x. Node's `fs` reference is close behind at 275,425 raw against 479, a page even lynx needs 120,928 tokens for. On the twelve pages both tools read, raw HTML costs 125x what oc does: 1,064,474 against 8,519.
+- **Nobody read Reddit this time, and only oc said so.** old.reddit.com now answers a logged-out request with a redirect to its login page, and that login page is what nine adapters reported as a success: 88,184 tokens of it through raw fetch, 47,489 through Playwright and Selenium, a 50 token "Skip to main content" through lynx, and Jina's 295 token 403 block page ("whoa there, pardner!"). oc followed the same redirect, found no readable content, and exited non-zero naming the login URL, which is the one result an agent can act on. That is why its success column reads 13/15 under tools that read nothing and show 15/15. oc 0.5.0 gets the identical redirect, so this is a site change, not a release change.
+- **The rows near oc are floors, not reads.** The computer-use rows price one 1024x768 screenshot per page, a look at the top third before any scrolling and before any prompt or reasoning tokens, which is why the OpenAI row is nominally the smallest. Browser Use's state message carries indexed elements but drops most of the page text. Among tools that actually deliver the content, the gap is 15x to Jina Reader and 59x to Playwright MCP, and the rendered-HTML routes (Playwright, Selenium) cost slightly more than raw fetch plus a browser.
+- **Some failures are the site's.** Yahoo Finance now refuses a plain `fetch` connection outright, on every retry, where oc's Chrome identity reads the quote for 452 tokens, lynx for 9,039 and Playwright MCP for 24,333. Lynx was blocked on the DuckDuckGo search again, and Jina Reader failed LinkedIn (403) and the Node.js `fs` page (503). oc was the only distilling reader with real content on all thirteen pages a logged-out client can still reach.
 
 ### Browse: whole tasks through Claude Code and Codex
 
 Single page tasks answer a question from one URL (Hacker News front page, a GitHub repository search, a Yahoo Finance quote, an old.reddit thread, a YouTube watch page, three cloud CLI reference pages). Multi step tasks start on one page and have to find and open a second (front page to the #1 story's comments, search results to the winning repository's license, DuckDuckGo to the Rust book, DuckDuckGo to an AWS reference page), which is where cost compounds: the first page is re-read on every turn that follows it. Each condition is locked to its one tool, with WebFetch and WebSearch disabled. The lynx condition ran lynx 2.9.0.
 
-**Claude Code, `claude-sonnet-5`, 2026-08-25, oc 0.5.0.** Thirteen tasks, sixty-five sessions.
+**Claude Code, `claude-sonnet-5`, 2026-09-02, oc 0.5.1.** Thirteen tasks, sixty-five sessions.
 
 | tool | success | turns | output tokens | total tokens | total cost USD | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| oc | 13/13 | 79 | 6,328 | 2,169,710 | 0.9524 | 13 |
-| raw-curl | 11/13 | 126 | 13,010 | 3,053,279 | 1.1342 | 27 |
-| lynx | 13/13 | 64 | 5,005 | 1,738,779 | 0.8853 | 12 |
-| jina-reader | 13/13 | 65 | 5,631 | 1,865,679 | 0.9991 | 15 |
-| playwright-mcp | 13/13 | 91 | 7,548 | 2,706,043 | 1.3035 | 17 |
+| oc | 13/13 | 77 | 5,453 | 1,748,589 | 0.8135 | 12 |
+| raw-curl | 12/13 | 121 | 14,711 | 2,683,048 | 1.0352 | 24 |
+| lynx | 13/13 | 63 | 4,649 | 1,359,717 | 0.6964 | 10 |
+| jina-reader | 13/13 | 63 | 4,520 | 1,456,559 | 0.8783 | 13 |
+| playwright-mcp | 13/13 | 91 | 7,839 | 2,291,624 | 1.3114 | 15 |
 
-**Codex, `gpt-5.6-sol` at xhigh, codex 0.148.0, 2026-08-24, oc 0.4.0.** Thirteen tasks, sixty-five sessions.
+**Codex, `gpt-5.6-sol` at xhigh, codex 0.148.0, 2026-08-24, oc 0.4.0.** Thirteen tasks, sixty-five sessions, not yet rerun on 0.5.1.
 
 | tool | success | turns | output tokens | total tokens | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -98,12 +99,12 @@ Single page tasks answer a question from one URL (Hacker News front page, a GitH
 | jina-reader | 13/13 | 59 | 6,321 | 1,016,427 | 29 |
 | playwright-mcp | 13/13 | 57 | 5,826 | 1,070,006 | 28 |
 
-- **Read the success column as "finished", not "read the page".** Under Claude, GitHub had suspended anonymous access for Jina Reader's whole service that morning (an `AbuseAlleviationError` with an expiry time), so both GitHub tasks came back as block reports, and so did both Reddit tasks: 9 real answers out of 13. Playwright MCP got Reddit's 403 twice and DuckDuckGo's CAPTCHA once: 10 of 13. Raw curl failed the GitHub search and the Yahoo Finance quote outright, 13 turns and about 400k tokens each, and reported Reddit's block page: 10 of 13. oc and lynx read all thirteen, though lynx could not see the YouTube view count, which the page renders with JavaScript. Priced per real answer: lynx 133,752 tokens, Jina Reader 165,237, oc 166,901, Playwright MCP 215,490, raw curl 292,687.
-- **lynx still takes the token and cost columns, but for a different reason than last time.** The 2026-08-18 run's gap was a navigation tax: `oc do <n>` had not shipped, so following a link meant re-fetching the page. That is fixed. On `gh-repo-detail` oc now spends 135,028 tokens against lynx's 139,456 (it was 187,160 against 139,578), and across the four multi step tasks the two are within 5% (879,338 against 836,774). What remains is almost one row: `azure-hns-flag`, where oc took 13 turns and 405,331 tokens against 4 turns and about 95,000 for every other tool. Without that row oc's total is 1,764,379 against lynx's 1,643,576.
-- **That outlier is an oc bug, not an agent quirk.** On the `az storage account` reference, `oc find hierarchical` lists the flag at `[126]` and `[144]`, but `oc read` of either number returns an unrelated paragraph about account level immutability: the numbers `find` prints and the ones `read` takes do not line up on this page shape. The agent found the flag, read the wrong block, and hunted. It still answered correctly, because the `find` line itself shows the flag.
+- **Read the success column as "finished", not "read the page".** Under Claude, Reddit's new login wall took both Reddit tasks from all five tools, ten polite block reports. Beyond those, Jina Reader got Google's bot check on the YouTube page and read Yahoo's previous close as the close, Playwright MCP hit DuckDuckGo's CAPTCHA on both search tasks and skipped the hop by navigating straight to the destination, lynx could not see the YouTube view count, which the page renders with JavaScript, and raw curl failed the Yahoo quote outright after 13 turns and 320,984 tokens, then named a flag that does not exist (`--hierarchical-namespace`) on the Azure page. oc answered the eleven tasks a logged-out reader can still reach, with the real content each time. Priced per real answer: lynx 107,341 tokens, Jina Reader 122,561, oc 139,968, Playwright MCP 184,396, raw curl 191,631.
+- **lynx still takes the token and cost columns, and the gap is still almost one row.** On `gh-repo-detail` oc spends 111,634 tokens against lynx's 115,714, and across the four multi step tasks the two are within 4% (520,625 against 501,570). What remains is `azure-hns-flag`, where oc took 12 turns and 309,076 tokens against 4 turns and about 77,000 for every other tool. Without that row oc's total is 1,439,513 against lynx's 1,282,415.
+- **That outlier is an oc bug, not an agent quirk, and 0.5.1 does not fix it.** On the `az storage account` reference, `oc find hierarchical` lists the flag at `[126]` and `[144]`, but `oc read` of either number returns an unrelated paragraph about account level immutability: the numbers `find` prints and the ones `read` takes do not line up on this page shape. The agent found the flag, read the wrong block, and hunted. It still answered correctly, because the `find` line itself shows the flag.
 - **Under Codex, thirteen out of thirteen is not what it looks like either.** Nothing errored, but nine of the sixty-five answers are a polite report that a site refused the tool: Reddit blocked curl, Jina Reader and the Playwright browser; DuckDuckGo showed curl, lynx and Playwright a bot challenge; Yahoo rate-limited curl. Counting only runs that returned real content: oc 13, lynx 12, Jina Reader 11, curl and Playwright MCP 10 each. lynx's 707,216 is the cheapest number in the table and includes a search task it never read.
 - **oc's spend has a different shape.** It took the most turns under Codex (68) because budgeted views make the agent navigate: `open`, then `find` or `do <n>`, each a small read. Its fresh input is the lowest in the run (232,681 tokens against 306,106 for Jina and 288,851 for curl), but at xhigh reasoning every extra turn re-reads the cached transcript and buys more reasoning, so its total lands mid-table. The tool that reads less per page pays in turns; the tools that dump whole pages pay in input. On this agent those roughly meet, and what separates the rows is the blocked tasks.
-- **Content nobody else gets.** Only oc and lynx read either Reddit task under Claude, and only oc read the YouTube view count. DuckDuckGo showed the Playwright browser a CAPTCHA on `ddg-follow` under both agents, so that agent reported it and stopped. Raw curl spent 23 turns and 785,978 tokens on `reddit-top-comment`, and lost turns on four tasks to scratch HTML files it saved and then could not delete under the sandbox. Jina Reader is the only tool here that routes every URL the agent reads through a third party's servers, which is also how a rate limit on Jina's service, not on the agent, cost it two GitHub tasks.
+- **Content nobody else gets, and content everybody lost.** Under Claude only oc, raw curl and the Playwright browser reported the YouTube view count, and the two Reddit tasks that only oc and lynx used to read are now behind a login wall for every tool. DuckDuckGo showed the Playwright browser a CAPTCHA on both search tasks under Claude and on `ddg-follow` under Codex. Raw curl spent 19 turns and 545,063 tokens on `reddit-top-comment` to report the wall, and again lost turns on four tasks to scratch HTML files it saved and then could not delete under the sandbox. Jina Reader is the only tool here that routes every URL the agent reads through a third party's servers, which is how a rate limit on Jina's service, not on the agent, cost it two GitHub tasks on the 2026-08-25 run.
 
 <details>
 <summary>Per-tier breakdown: what an extra hop costs</summary>
@@ -112,11 +113,11 @@ Claude Code, nine single page and four multi step tasks:
 
 | tool | single page tokens | single page turns | multi step tokens | multi step turns |
 | --- | ---: | ---: | ---: | ---: |
-| oc | 1,290,372 | 49 | 879,338 | 30 |
-| raw-curl | 1,769,753 (2 failed) | 60 | 2,117,415 | 66 |
-| lynx | 902,005 | 36 | 836,774 | 28 |
-| jina-reader | 1,235,754 | 42 | 629,925 | 23 |
-| playwright-mcp | 1,462,391 | 52 | 1,243,652 | 39 |
+| oc | 1,060,036 | 47 | 688,553 | 30 |
+| raw-curl | 1,393,558 (1 failed) | 60 | 1,610,474 | 61 |
+| lynx | 732,509 | 36 | 627,208 | 27 |
+| jina-reader | 671,926 | 33 | 784,633 | 30 |
+| playwright-mcp | 1,185,130 | 51 | 1,106,494 | 40 |
 
 Codex:
 
@@ -128,7 +129,7 @@ Codex:
 | jina-reader | 736,286 | 41 | 280,141 | 18 |
 | playwright-mcp | 637,801 | 35 | 432,205 | 22 |
 
-Every run counts here, failures included. Raw curl's two Claude failures (the GitHub search and the Yahoo Finance quote) each burned the full 13-turn budget and about 400k tokens; the summary table above excludes failed runs from its token totals but counts their turns.
+Every run counts here, failures included. Raw curl's one Claude failure (the Yahoo Finance quote) burned the full 13-turn budget and 320,984 tokens; the summary table above excludes failed runs from its token totals but counts their turns.
 
 </details>
 
@@ -136,44 +137,44 @@ Every run counts here, failures included. Raw curl's two Claude failures (the Gi
 
 Five ways someone actually reaches for Wikipedia: an ambiguous term whose article competes with homonyms in cosmology and geology (`anthropic`), a person (Dario Amodei), one fact buried in a long article (when the Eiffel Tower was finished and how tall it is), a technical concept (which paper introduced the transformer), and a non-English wiki (Berlin's population on `de.wikipedia.org`). Answers are graded against an `expect` regex, because a search snippet can produce a fluent answer about the wrong Anthropic, and a token count next to a wrong answer is not a saving.
 
-**Claude Code, `claude-sonnet-5`, 2026-08-23, oc 0.4.0.** Fifteen sessions.
+**Claude Code, `claude-sonnet-5`, 2026-09-02, oc 0.5.1.** Fifteen sessions.
 
 | tool | success | correct | turns | input tokens | total tokens | total cost USD | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| oc-wiki | 5/5 | 5/5 | 22 | 5,535 | 549,823 | 0.2692 | 11 |
-| webfetch | 5/5 | 5/5 | 25 | 128,792 | 766,491 | 0.3727 | 14 |
-| websearch | 5/5 | 5/5 | 27 | 160,431 | 870,953 | 0.5243 | 22 |
+| oc-wiki | 5/5 | 5/5 | 22 | 5,535 | 448,018 | 0.2289 | 8 |
+| webfetch | 5/5 | 5/5 | 25 | 129,257 | 646,752 | 0.3490 | 12 |
+| websearch | 5/5 | 5/5 | 26 | 136,982 | 686,450 | 0.4485 | 16 |
 
-**Codex, `gpt-5.6-sol` at xhigh, 2026-08-24, oc 0.4.0.** `webfetch` skipped: codex has no fetch-one-URL tool.
+**Codex, `gpt-5.6-sol` at xhigh, 2026-08-24, oc 0.4.0.** Not yet rerun on 0.5.1. `webfetch` skipped: codex has no fetch-one-URL tool.
 
 | tool | success | correct | turns | input tokens | total tokens | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | oc-wiki | 5/5 | 5/5 | 13 | 34,189 | 165,460 | 19 |
 | websearch | 5/5 | 4/5 | 13 | 49,255 | 193,290 | 16 |
 
-- **On Claude this is a cost result, not an accuracy one.** All three conditions got 5/5. oc's 500 token budget keeps its fresh input flat at roughly 1,100 tokens per task, while WebFetch pays for whatever the article weighs: 6,379 tokens on a short stub, 39,264 on the German Berlin article, a 5.7x to 35x per-task spread. The totals sit closer together because cache reads of the agent's own prompt dominate them.
+- **On Claude this is a cost result, not an accuracy one.** All three conditions got 5/5. oc's 500 token budget keeps its fresh input flat at roughly 1,100 tokens per task, while WebFetch pays for whatever the article weighs: 6,556 tokens on a short stub, 39,271 on the German Berlin article, a 5.9x to 35x per-task spread. The totals sit closer together because cache reads of the agent's own prompt dominate them.
 - **On Codex it is an accuracy result too.** Codex's web search answered the Berlin question with a stale population the current article no longer shows. `oc wiki lang de Berlin` read the infobox and got it right, on fewer input tokens per task.
 
 ### Language docs: `oc docs` against WebFetch and WebSearch
 
 One canonical lookup per language shortcut oc ships: the default of `json.dumps`'s `sort_keys` (Python), `Array.prototype.at` with a negative index (MDN), the option `fs.rm` needs for a non-empty directory (Node.js), `Array#dig` on a nil step (Ruby), the `json:"-"` struct tag (Go), what `Vec::pop` returns (Rust), what `Optional.get` throws (Java), whether `array_filter` keeps keys (PHP), what `Partial<Type>` does (TypeScript), what `vector::at` throws (C++ via cppreference), and `String.IsNullOrWhiteSpace` on spaces (.NET via Microsoft Learn). Same conditions and grading as the wiki suite.
 
-**Claude Code, `claude-sonnet-5`, 2026-08-24, oc 0.5.0** (the language docs branch, shimmed onto PATH before it shipped). Thirty-three sessions.
+**Claude Code, `claude-sonnet-5`, 2026-09-02, oc 0.5.1.** Thirty-three sessions.
 
 | tool | success | correct | turns | input tokens | total tokens | total cost USD | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| oc-docs | 11/11 | 11/11 | 55 | 12,965 | 1,446,195 | 0.5731 | 9 |
-| webfetch | 11/11 | 10/11 | 55 | 203,489 | 1,607,034 | 0.7434 | 11 |
-| websearch | 11/11 | 11/11 | 55 | 209,782 | 1,613,874 | 0.8857 | 15 |
+| oc-docs | 11/11 | 11/11 | 56 | 12,967 | 1,212,561 | 0.5605 | 8 |
+| webfetch | 11/11 | 10/11 | 56 | 203,497 | 1,373,058 | 0.7112 | 12 |
+| websearch | 11/11 | 11/11 | 55 | 215,833 | 1,360,666 | 0.8470 | 14 |
 
-**Codex, `gpt-5.6-sol` at xhigh, 2026-08-24, same oc.** `webfetch` skipped.
+**Codex, `gpt-5.6-sol` at xhigh, 2026-08-24, oc 0.5.0** (the language docs branch, shimmed onto PATH before it shipped), not yet rerun on 0.5.1. `webfetch` skipped.
 
 | tool | success | correct | turns | input tokens | total tokens | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | oc-docs | 11/11 | 11/11 | 39 | 155,700 | 481,628 | 18 |
 | websearch | 11/11 | 11/11 | 24 | 116,961 | 406,312 | 11 |
 
-- **On Claude, oc is 23% cheaper than WebFetch and 35% cheaper than WebSearch in dollars, at equal or better accuracy.** Its fresh input is flat at roughly 1,175 tokens per task whatever the page weighs; WebFetch pays 8,604 on the light PHP manual page and 39,613 on Ruby's `Array` class, a 7x to 34x per-task spread. WebFetch's one wrong answer is an access result: cppreference.com returned 403 Forbidden to it, twice, while oc's Chrome impersonation reads the same page.
+- **On Claude, oc is 21% cheaper than WebFetch and 34% cheaper than WebSearch in dollars, at equal or better accuracy.** Its fresh input is flat at roughly 1,180 tokens per task whatever the page weighs; WebFetch pays 8,606 on the light PHP manual page and 39,614 on Ruby's `Array` class, a 7x to 34x per-task spread. WebFetch's one wrong answer is an access result: cppreference.com returned 403 Forbidden to it, twice, while oc's Chrome impersonation reads the same page.
 - **On Codex the built-in tool wins, 16% cheaper.** These are exactly the canonical facts a search snippet already contains, and Codex's web search answered most tasks in two turns without opening a page. The shortcut still buys determinism, since it reads the actual reference page rather than trusting a snippet, which is what decided the Berlin question above. But on well-indexed one-fact lookups Codex's own search is already efficient, and honest numbers say so.
 
 ## Reading the numbers
@@ -183,7 +184,7 @@ One canonical lookup per language shortcut oc ships: the default of `json.dumps`
 - **"Success" means the run finished.** In the browse suite a politely reported block page counts as a success. The wiki and docs suites grade every answer against an `expect` regex, and cheapest only counts among conditions that got every answer right, since a tool that skipped work by failing would otherwise win every token column.
 - **The conditions are not handed identical inputs.** WebFetch and oc are given the starting URL; WebSearch gets the question and has to find the page itself, which is what that tool is for but is a different job, and part of why it costs the most.
 - **Codex differs from Claude Code in ways that shape its tables.** No allowed-tools equivalent, so the one-tool restriction is prompt-only; it cannot load skills, so the same skill body rides along in the prompt; no per-run cost on a ChatGPT plan; no turn cap; and its turns count completed tool calls and messages, since codex reports one turn per session. Its own web search stands in for WebSearch via `-c tools.web_search=true`; `webfetch` is skipped rather than approximated.
-- **Claude Code's model router** picked `claude-haiku-4-5` for three of the fifteen wiki sessions and one docs session, visible in the model column of the full rows. The rankings do not change on the Sonnet rows alone.
+- **Claude Code's model router** picked `claude-haiku-4-5` for two of the fifteen wiki sessions and four docs sessions, visible in the model column of the full rows. The rankings do not change on the Sonnet rows alone.
 - **Live sites are noisy.** Numbers move between runs, and a site may block or change at any time. Compare orders of magnitude, not single-digit percentages.
 
 ## What is measured
