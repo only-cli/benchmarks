@@ -15,11 +15,11 @@
 | stock-price | lynx | claude-sonnet-5 | yes | 6 | 1022 | 548 | 125244 | 6689 | 133503 | 0.0582 | 12 | AAPL closed at $324.96 (−0.17, −0.05%) at 4:00:01 PM EDT. |
 | stock-price | jina-reader | claude-sonnet-5 | yes | 5 | 1034 | 392 | 97870 | 5890 | 105186 | 0.0480 | 12 | AAPL's most recent market close price shown on the page was $325.13 (Previous Cl |
 | stock-price | playwright-mcp | claude-sonnet-5 | yes | 7 | 1024 | 629 | 153032 | 9226 | 163911 | 0.0748 | 18 | AAPL closed at $324.96 (down $0.17, -0.05%) at 4:00:01 PM EDT. |
-| reddit-thread | oc | claude-sonnet-5 | yes | 5 | 1104 | 350 | 98222 | 4891 | 104567 | 0.0438 | 11 | The `oc` tool can't access this page — old.reddit.com redirects it to a login wa |
-| reddit-thread | raw-curl | claude-sonnet-5 | yes | 9 | 1039 | 1464 | 210212 | 8956 | 221671 | 0.0935 | 24 | Both old.reddit.com and www.reddit.com are blocking access (login wall / 403). P |
-| reddit-thread | lynx | claude-sonnet-5 | yes | 5 | 1027 | 418 | 96852 | 4185 | 102482 | 0.0413 | 11 | The lynx tool is being redirected to a login page by Reddit, so the thread conte |
-| reddit-thread | jina-reader | claude-sonnet-5 | yes | 4 | 1039 | 243 | 71470 | 4245 | 76997 | 0.0347 | 7 | The page is blocked (403 Forbidden from Reddit), so I can't retrieve the thread  |
-| reddit-thread | playwright-mcp | claude-sonnet-5 | yes | 6 | 1029 | 478 | 124448 | 5316 | 131271 | 0.0519 | 13 | The site blocked the automated browser (403, redirected to a login/blocked page) |
+| reddit-thread | oc | claude-sonnet-5 | yes | 4 | 1104 | 244 | 66765 | 18484 | 86597 | 0.0908 | 8 | Commenters most frequently recommend **w3m** (multiple separate endorsements, in |
+| reddit-thread | raw-curl | claude-sonnet-5 | yes | 10 | 1043 | 1292 | 238606 | 29167 | 270108 | 0.1783 | 28 | Commenters mention w3m, links, lynx, elinks, and browsh, but w3m gets the most d |
+| reddit-thread | lynx | claude-sonnet-5 | NO | 13 | 1045 | 2244 | 316858 | 13040 | 333187 | 0.1390 | 40 |  |
+| reddit-thread | jina-reader | claude-sonnet-5 | yes | 11 | 1055 | 2212 | 263343 | 8036 | 274646 | 0.1079 | 51 | The Jina reader tool consistently fails to extract usable content from this Redd |
+| reddit-thread | playwright-mcp | claude-sonnet-5 | yes | 6 | 1031 | 472 | 124009 | 4874 | 130386 | 0.0500 | 11 | I can't retrieve the page — the request returned HTTP 403 with "You've been bloc |
 | hn-comments | oc | claude-sonnet-5 | yes | 5 | 1103 | 286 | 100105 | 7412 | 108906 | 0.0536 | 10 | The #1 story is "Muse Spark 1.3," and the top comment argues that Meta has had a |
 | hn-comments | raw-curl | claude-sonnet-5 | yes | 6 | 1032 | 530 | 125092 | 6806 | 133460 | 0.0585 | 12 | The #1 story is "Muse Spark 1.3" (developer.meta.com), and the top comment argue |
 | hn-comments | lynx | claude-sonnet-5 | yes | 6 | 1028 | 552 | 123498 | 5504 | 130582 | 0.0532 | 15 | The #1 story is "Muse Spark 1.3" (meta.com), and its top comment argues that the |
@@ -35,11 +35,11 @@
 | ddg-follow | lynx | claude-sonnet-5 | yes | 7 | 1047 | 586 | 166054 | 11098 | 178785 | 0.0845 | 19 | The first sentence of the Introduction is: "Welcome to The Rust Programming Lang |
 | ddg-follow | jina-reader | claude-sonnet-5 | yes | 8 | 1063 | 660 | 207330 | 14705 | 223758 | 0.1079 | 19 | "Welcome to _The Rust Programming Language_, an introductory book about Rust." |
 | ddg-follow | playwright-mcp | claude-sonnet-5 | yes | 8 | 1049 | 912 | 180103 | 25969 | 208033 | 0.1500 | 18 | Note: the DuckDuckGo HTML search was blocked by a bot-check CAPTCHA, so I naviga |
-| reddit-top-comment | oc | claude-sonnet-5 | yes | 5 | 1105 | 298 | 98164 | 4810 | 104377 | 0.0429 | 9 | The page redirects to a login wall and returns no readable content, so I can't a |
-| reddit-top-comment | raw-curl | claude-sonnet-5 | yes | 19 | 1060 | 4046 | 523773 | 16184 | 545063 | 0.2110 | 74 | That's fine, I'll leave the temp files as-is rather than fight the sandbox restr |
-| reddit-top-comment | lynx | claude-sonnet-5 | yes | 4 | 1026 | 221 | 71410 | 3832 | 76489 | 0.0328 | 6 | The page appears to be blocked/gated (redirecting to a login page) rather than s |
-| reddit-top-comment | jina-reader | claude-sonnet-5 | yes | 4 | 1040 | 227 | 71459 | 4200 | 76926 | 0.0343 | 8 | The Jina reader was blocked by Reddit (403 Forbidden network policy block), so I |
-| reddit-top-comment | playwright-mcp | claude-sonnet-5 | yes | 6 | 1030 | 463 | 125022 | 5480 | 131995 | 0.0525 | 13 | The site blocked the automated browser (403, "You've been blocked by network sec |
+| reddit-top-comment | oc | claude-sonnet-5 | NO | 26 | 1150 | 8536 | 837101 | 23611 | 870398 | 0.3483 | 162 |  |
+| reddit-top-comment | raw-curl | claude-sonnet-5 | NO | 26 | 1077 | 4476 | 750160 | 14463 | 770176 | 0.2537 | 144 |  |
+| reddit-top-comment | lynx | claude-sonnet-5 | yes | 22 | 1065 | 4172 | 635591 | 16241 | 657069 | 0.2348 | 86 | Confirmed: the first post has exactly one entry in its comments feed (the OP its |
+| reddit-top-comment | jina-reader | claude-sonnet-5 | yes | 8 | 1051 | 1247 | 176895 | 5814 | 185007 | 0.0721 | 31 | Jina Reader isn't rendering the RSS/Atom content for this feed (entries come bac |
+| reddit-top-comment | playwright-mcp | claude-sonnet-5 | yes | 6 | 1033 | 449 | 125297 | 5458 | 132237 | 0.0523 | 12 | The feed request was blocked by Reddit's network security (403), so I can't retr |
 | youtube-watch | oc | claude-sonnet-5 | yes | 4 | 1095 | 246 | 72058 | 5602 | 79001 | 0.0403 | 10 | "Do schools kill creativity? | Sir Ken Robinson | TED" — it has about 24,939,690 |
 | youtube-watch | raw-curl | claude-sonnet-5 | yes | 5 | 1024 | 410 | 96787 | 4069 | 102290 | 0.0407 | 12 | The video is "Do schools kill creativity? | Sir Ken Robinson | TED" with roughly |
 | youtube-watch | lynx | claude-sonnet-5 | yes | 4 | 1018 | 312 | 71385 | 4730 | 77445 | 0.0373 | 11 | The video is titled "Do schools kill creativity? | Sir Ken Robinson | TED," but  |
@@ -69,30 +69,30 @@
 ### Summary
 | tool | model | success | turns | output tokens | total tokens | total cost USD | avg s |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| oc | claude-sonnet-5 | 13/13 ✅ | 77 | 5453 | 1748589 | 0.8135 | 12 |
-| raw-curl | claude-sonnet-5 | 12/13 | 121 | 14711 | 2683048 | 1.0352 | 24 |
-| lynx | claude-sonnet-5 | 13/13 ✅ | 63 ✅ | 4649 | 1359717 ✅ | 0.6964 ✅ | 10 ✅ |
-| jina-reader | claude-sonnet-5 | 13/13 ✅ | 63 ✅ | 4520 ✅ | 1456559 | 0.8783 | 13 |
-| playwright-mcp | claude-sonnet-5 | 13/13 ✅ | 91 | 7839 | 2291624 | 1.3114 | 15 |
+| oc | claude-sonnet-5 | 12/13 | 97 | 5049 | 1626242 | 0.8177 | 24 |
+| raw-curl | claude-sonnet-5 | 11/13 | 129 | 10493 | 2186422 | 0.9091 | 30 |
+| lynx | claude-sonnet-5 | 12/13 | 89 | 8182 | 1837815 | 0.8572 | 18 |
+| jina-reader | claude-sonnet-5 | 13/13 ✅ | 74 ✅ | 7509 ✅ | 1762289 ✅ | 0.9894 ✅ | 18 |
+| playwright-mcp | claude-sonnet-5 | 13/13 ✅ | 91 | 7819 | 2290981 | 1.3093 | 15 ✅ |
 
 Turns count every run, failures included; token and cost totals count successes only. The ✅ marks the best value in each column among tools that finished every task.
 
 ### Cost per tier: one page versus following a link
 | tool | single page tokens | single page turns | multi step tokens | multi step turns |
 | --- | ---: | ---: | ---: | ---: |
-| oc | 1,060,036 | 47 | 688,553 | 30 |
-| raw-curl | 1,393,558 (1 failed) | 60 | 1,610,474 | 61 |
-| lynx | 732,509 | 36 | 627,208 | 27 |
-| jina-reader | 671,926 | 33 | 784,633 | 30 |
-| playwright-mcp | 1,185,130 | 51 | 1,106,494 | 40 |
+| oc | 1,042,066 | 46 | 1,454,574 (1 failed) | 51 |
+| raw-curl | 1,441,995 (1 failed) | 61 | 1,835,587 (1 failed) | 68 |
+| lynx | 963,214 (1 failed) | 44 | 1,207,788 | 45 |
+| jina-reader | 869,575 | 40 | 892,714 | 34 |
+| playwright-mcp | 1,184,245 | 51 | 1,106,736 | 40 |
 
 Every run in this table counts, failures included.
 
 ### What each tool actually cost, failures included
 ```
-oc             #######################                   1,748,589 tokens  77 turns
-raw-curl       ########################################  3,004,032 tokens  121 turns  1 failed
-lynx           ##################                        1,359,717 tokens  63 turns
-jina-reader    ###################                       1,456,559 tokens  63 turns
-playwright-mcp ###############################           2,291,624 tokens  91 turns
+oc             ##############################            2,496,640 tokens  97 turns  1 failed
+raw-curl       ########################################  3,277,582 tokens  129 turns  2 failed
+lynx           ##########################                2,171,002 tokens  89 turns  1 failed
+jina-reader    ######################                    1,762,289 tokens  74 turns
+playwright-mcp ############################              2,290,981 tokens  91 turns
 ```

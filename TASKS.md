@@ -44,12 +44,12 @@ What each one showed, in tokens per page view, on the 2026-09-04 run of oc 0.5.3
 
 - **simple-page**: 46 for `oc open`, 140 for raw fetch, 47 for lynx. Everything is cheap when the page is empty, except the screenshot floors: 1,049 tokens for Claude computer use and 765 for OpenAI computer use, since an image of a nearly blank page still costs a full image.
 - **news-front**: 1,121 for `oc open` against 8,669 raw and 12,328 for a Playwright accessibility snapshot. This is the shape of a page where distillation pays.
-- **discussion**: no read for anyone. old.reddit.com now redirects a logged-out request to its login page, and the row is ten failures wearing a success badge: raw fetch's 88,184 and the rendered-HTML routes' 47,489 are the login page, lynx's 50 is its "Skip to main content" link, Jina Reader's 295 is Reddit's block page ("whoa there, pardner!", a 403 to its crawler wrapped in a 200), Playwright MCP's 223 is a blocked snapshot, and browser-use's 39 is a state message with almost no page in it. `oc open` is the one adapter marked failed, because it followed the redirect, found no readable text, and exited non-zero naming the login URL. On the 2026-08-24 run it read the thread for 461 tokens against 52,856 raw.
+- **discussion**: 459 for `oc open` against 10,452 for the feed itself, which is what raw fetch and lynx return verbatim. A thread's Atom feed is about a fifth the size of the old page HTML (52,856 tokens back when a logged-out client could still read it), so even the raw route got cheaper; oc is 23x cheaper than the feed. Every other row is Reddit refusing a fingerprint and the adapter calling the refusal a success: Jina Reader's 160 and Playwright MCP's 207 are block pages, browser-use's 39 is a state message, Playwright's rendered HTML is 10 tokens of nothing and Selenium's 47,489 is the login page. The Reddit rows in this run were collected a minute apart after fifteen minutes of quiet; at eight, fifteen and thirty seconds between tools, the same feed answered the second request from a client with a 429 every time.
 - **search-results**: 771 for `oc open` against 3,559 for raw fetch, which came back as DuckDuckGo's challenge page (HTTP 202, visible in the status column). Lynx was the one outright failure here, blocked with zero usable output.
 - **repo-search**: 1,468 for `oc open` against 68,134 raw and 68,201 for Selenium's rendered HTML.
 - **company-page**: 1,488 for `oc open` against 39,276 raw. browser-use's 321 is again a nearly empty state message, and Jina Reader failed the page with a 403.
 - **stock-quote**: 447 for `oc open`, with raw fetch refused outright: Yahoo Finance now closes a plain `fetch` connection before any status comes back, on every retry. Selenium's rendered HTML is 414,583 and Playwright's 399,584, so this is still the heaviest page in the suite when a client can read it at all, and the widest spread.
-- **subreddit-front**: the same login wall as the thread task, and the same shape of row: raw fetch 88,011, lynx 38, Jina Reader 283, Playwright MCP 198, browser-use 39, and `oc open` the only adapter that reported failure. It read the page for 1,556 tokens on 2026-08-24.
+- **subreddit-front**: 493 for `oc open` against 21,155 for the feed XML through raw fetch and lynx. The same shape of row otherwise: Jina Reader 92, Playwright MCP 185, browser-use 39, and 47,489 of login page through each rendered-HTML route. One earlier pass at thirty seconds between tools refused even oc's first request, so this page is the reason the suite paces the two Reddit tasks at a minute.
 - **video-page**: 688 for `oc open` against 363,516 raw and 398,541 for Playwright's rendered HTML. Playwright MCP's 502 and browser-use's 479 are the visible DOM only, which is the part of a watch page that does not carry the description or the caption links.
 - **aws-cli-ref**: 506 for `oc open` against 17,990 raw. The whole distilled page is 6,474 (`oc raw`), so the first view is the top slice of a document with a long tail behind it.
 - **gcloud-ref**: 492 for `oc open` against 138,030 raw, 46,342 for the whole distilled page, and 31,733 for Jina Reader.
@@ -91,20 +91,20 @@ The four cloud docs tasks are the coding shape the rest of the suite was missing
 
 These are also the tasks where the page view suite's cheap first view stops meaning anything, since none of the three answers is in it. What the agent suite measures here is the cost of the whole search, which for a paging reader is the first view plus a `find` and a `read`, and for a fetch-the-page reader is 18,000 to 132,000 tokens up front, once per turn that re-reads it.
 
-Multi step tasks carry `maxTurns: 25`; the default cap is 12. All thirteen ran together on Claude Code on 2026-09-02 with oc 0.5.1, and on Codex on 2026-08-24 with oc 0.4.0; the tables below are from those runs.
+Multi step tasks carry `maxTurns: 25`; the default cap is 12. All thirteen ran together on Claude Code on 2026-09-02 with oc 0.5.1, the two Reddit tasks were rerun on 2026-09-04 with oc 0.5.3 after the switch to the Atom feeds, and the Codex run is from 2026-08-24 with oc 0.4.0; the tables below are from those runs.
 
 `youtube-watch` deliberately stops at the watch page. A video's transcript lives behind a second URL (`captionTracks[].baseUrl`, a signed link to YouTube's `timedtext` endpoint) that only oc's distiller currently surfaces as a followable link; every other tool would have to notice the JSON blob, extract that URL, and construct the fetch itself. It is not in the suite yet because live-checking it while adding this task turned up a live-site problem, not a tool problem: fetching a real `captionTracks` URL directly, with either plain curl or oc's Chrome-impersonating client, gets a `200` with an empty body. Whatever YouTube requires to serve that endpoint's content now (likely a request tied to a real browser session), no scriptable reader here can supply it, so a transcript task would measure that gate rather than any tool, the same reason the Rust book's chapter list and GitHub's sidebar were dropped. Revisit if that changes.
 
 ### Total tokens per task, Claude Code on claude-sonnet-5
 
-2026-09-02, oc 0.5.1, lynx 2.9.0, all thirteen tasks in one run.
+2026-09-02, oc 0.5.1, lynx 2.9.0, all thirteen tasks in one run; the two Reddit rows are from the 2026-09-04 rerun on oc 0.5.3 through the Atom feeds.
 
 | task | oc | raw curl | lynx | Jina Reader | Playwright MCP |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | hn-top | 79,776 | 78,276 | 76,576 | 84,015 | 157,770 |
 | gh-search | 80,352 | 306,899 | 83,171 | 83,335 | 144,077 |
 | stock-price | 164,368 | 320,984 (failed) | 133,503 | 105,186 (previous close) | 163,911 |
-| reddit-thread | 104,567 (blocked) | 221,671 (blocked) | 102,482 (blocked) | 76,997 (blocked) | 131,271 (blocked) |
+| reddit-thread | 86,597 | 270,108 | 333,187 (failed) | 274,646 (empty feed) | 130,386 (blocked) |
 | youtube-watch | 79,001 | 102,290 | 77,445 (no view count) | 77,029 (blocked) | 169,560 |
 | aws-s3-recursive | 107,048 | 77,325 | 77,456 | 86,010 | 150,641 |
 | gcloud-instance-flags | 135,848 | 209,360 | 104,574 | 81,762 | 132,413 |
@@ -112,7 +112,7 @@ Multi step tasks carry `maxTurns: 25`; the default cap is 12. All thirteen ran t
 | hn-comments | 108,906 | 133,460 | 130,582 | 158,422 | 292,664 |
 | gh-repo-detail | 111,634 | 243,242 | 115,714 | 198,113 | 265,779 |
 | ddg-follow | 195,708 | 393,649 | 178,785 | 223,758 | 208,033 (skipped the search) |
-| reddit-top-comment | 104,377 (blocked) | 545,063 (blocked) | 76,489 (blocked) | 76,926 (blocked) | 131,995 (blocked) |
+| reddit-top-comment | 870,398 (failed) | 770,176 (failed) | 657,069 (no comments) | 185,007 (empty feed) | 132,237 (blocked) |
 | aws-docs-follow | 167,928 | 295,060 | 125,638 | 127,414 | 208,023 (skipped the search) |
 
 ### Total tokens per task, Codex on gpt-5.6-sol
@@ -126,7 +126,7 @@ Multi step tasks carry `maxTurns: 25`; the default cap is 12. All thirteen ran t
 | gh-repo-detail | 46,055 | 95,683 | 59,167 | 81,909 | 143,063 |
 | ddg-follow | 47,884 | 31,532 (blocked) | 51,723 | 56,966 | 57,055 (blocked) |
 
-"blocked" marks a run that returned an answer saying the site refused the tool. Those runs count as successes in the harness, because the agent did reply and did not error, but they did not read the page, and any token comparison that ignores them rewards the tool that did the least work. "skipped the search" marks the Playwright browser hitting DuckDuckGo's CAPTCHA and typing the destination URL in directly, one hop where the task describes two. "wrong flag" and "previous close" mark answers that read the page and still got the fact wrong, which the browse suite does not grade but the reader should.
+"blocked" marks a run that returned an answer saying the site refused the tool, and "empty feed" one where Jina Reader returned the Reddit feed with no entry text in it. Those runs count as successes in the harness, because the agent did reply and did not error, but they did not read the page, and any token comparison that ignores them rewards the tool that did the least work. "failed" marks a run that hit its turn cap without an answer. "no comments" marks lynx's `reddit-top-comment` run, which is the honest answer: on 2026-09-04 the first post in the r/ClaudeAI feed was a pinned index post by a moderator bot with no comments, so the post title and the absence of a top comment is all there was to report. oc and raw curl ran out of turns on the same task; oc because its feed view hides each entry's `open` link as a repeated control, so `do <n>` on a post reads its heading instead of following it, and the refetches that followed met Reddit's 429. That is an oc defect, recorded in the README. "skipped the search" marks the Playwright browser hitting DuckDuckGo's CAPTCHA and typing the destination URL in directly, one hop where the task describes two. "wrong flag" and "previous close" mark answers that read the page and still got the fact wrong, which the browse suite does not grade but the reader should.
 
 ### The cloud docs group
 
