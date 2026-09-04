@@ -24,12 +24,12 @@ Fifteen pages, chosen to span the range from trivial to hostile. Token counts be
 | --- | --- | --- |
 | `simple-page` | example.com | the floor: a page with almost nothing on it |
 | `news-front` | news.ycombinator.com | a dense, link heavy front page |
-| `discussion` | an old.reddit thread | long threaded comments, on a site that blocks crawlers |
+| `discussion` | a Reddit thread's Atom feed (www.reddit.com/r/.../comments/.../.rss) | long threaded comments, on a site whose pages now sit behind a login wall; the feed is the route that still answers anonymously |
 | `search-results` | html.duckduckgo.com search | a search engine that challenges automated clients |
 | `repo-search` | GitHub repository search | an application page wrapped in heavy chrome |
 | `company-page` | a LinkedIn company page, guest view | a login walled site's public view |
 | `stock-quote` | the Yahoo Finance AAPL quote page | a data dense finance page wrapped in heavy portal chrome |
-| `subreddit-front` | old.reddit.com/r/ClaudeAI | a front page of post listings, one hop before the discussion task's comments |
+| `subreddit-front` | www.reddit.com/r/ClaudeAI/.rss | a subreddit's post listing as an Atom feed, one hop before the discussion task's comments |
 | `video-page` | a YouTube watch page (a TED talk) | a page whose real content (title, byline, description, caption links) rides inside a large inline JSON blob rather than the visible DOM |
 | `aws-cli-ref` | the `aws s3 cp` reference page | a mid sized CLI reference: options, then a long tail of worked examples |
 | `gcloud-ref` | the `gcloud compute instances create` reference page | the extreme of the genre, several hundred flags in one document |
@@ -38,25 +38,25 @@ Fifteen pages, chosen to span the range from trivial to hostile. Token counts be
 | `mdn-js-ref` | MDN's `Array.prototype.map` reference | a modern docs site: syntax, parameters, examples, compatibility tables |
 | `node-api-ref` | the Node.js `fs` module page | one of the longest single page API documents on the web |
 
-The cloud CLI pages are the coding lookup case. An agent writing a deploy or provisioning script goes to a cloud CLI reference page for one flag, and that flag is buried in a document that costs 18,000 to 132,000 tokens to fetch whole. It is a good stress case precisely because it is not a page anyone reads end to end. The three language documentation pages extend the same case to everyday programming lookups, and they went in alongside oc's `py`, `mdn`, and `node` shortcuts. The Node.js `fs` page is the heaviest document in the suite: one page, 275,425 tokens fetched raw.
+The cloud CLI pages are the coding lookup case. An agent writing a deploy or provisioning script goes to a cloud CLI reference page for one flag, and that flag is buried in a document that costs 18,000 to 138,000 tokens to fetch whole. It is a good stress case precisely because it is not a page anyone reads end to end. The three language documentation pages extend the same case to everyday programming lookups, and they went in alongside oc's `py`, `mdn`, and `node` shortcuts. The Node.js `fs` page is the heaviest document in the suite: one page, 275,425 tokens fetched raw.
 
-What each one showed, in tokens per page view, on the 2026-09-02 run of oc 0.5.1:
+What each one showed, in tokens per page view, on the 2026-09-04 run of oc 0.5.3:
 
 - **simple-page**: 46 for `oc open`, 140 for raw fetch, 47 for lynx. Everything is cheap when the page is empty, except the screenshot floors: 1,049 tokens for Claude computer use and 765 for OpenAI computer use, since an image of a nearly blank page still costs a full image.
-- **news-front**: 1,065 for `oc open` against 8,622 raw and 12,290 for a Playwright accessibility snapshot. This is the shape of a page where distillation pays.
+- **news-front**: 1,121 for `oc open` against 8,669 raw and 12,328 for a Playwright accessibility snapshot. This is the shape of a page where distillation pays.
 - **discussion**: no read for anyone. old.reddit.com now redirects a logged-out request to its login page, and the row is ten failures wearing a success badge: raw fetch's 88,184 and the rendered-HTML routes' 47,489 are the login page, lynx's 50 is its "Skip to main content" link, Jina Reader's 295 is Reddit's block page ("whoa there, pardner!", a 403 to its crawler wrapped in a 200), Playwright MCP's 223 is a blocked snapshot, and browser-use's 39 is a state message with almost no page in it. `oc open` is the one adapter marked failed, because it followed the redirect, found no readable text, and exited non-zero naming the login URL. On the 2026-08-24 run it read the thread for 461 tokens against 52,856 raw.
-- **search-results**: 758 for `oc open` against 3,559 for raw fetch, which came back as DuckDuckGo's challenge page (HTTP 202, visible in the status column). Lynx was the one outright failure here, blocked with zero usable output.
-- **repo-search**: 1,468 for `oc open` against 67,917 raw and 67,986 for Selenium's rendered HTML.
-- **company-page**: 1,562 for `oc open` against 39,277 raw. browser-use's 295 is again a nearly empty state message, and Jina Reader failed the page with a 403.
-- **stock-quote**: 452 for `oc open`, with raw fetch refused outright: Yahoo Finance now closes a plain `fetch` connection before any status comes back, on every retry. Selenium's rendered HTML is 273,575 and Playwright's 403,789, so this is still the heaviest page in the suite when a client can read it at all, and the widest spread.
+- **search-results**: 771 for `oc open` against 3,559 for raw fetch, which came back as DuckDuckGo's challenge page (HTTP 202, visible in the status column). Lynx was the one outright failure here, blocked with zero usable output.
+- **repo-search**: 1,468 for `oc open` against 68,134 raw and 68,201 for Selenium's rendered HTML.
+- **company-page**: 1,488 for `oc open` against 39,276 raw. browser-use's 321 is again a nearly empty state message, and Jina Reader failed the page with a 403.
+- **stock-quote**: 447 for `oc open`, with raw fetch refused outright: Yahoo Finance now closes a plain `fetch` connection before any status comes back, on every retry. Selenium's rendered HTML is 414,583 and Playwright's 399,584, so this is still the heaviest page in the suite when a client can read it at all, and the widest spread.
 - **subreddit-front**: the same login wall as the thread task, and the same shape of row: raw fetch 88,011, lynx 38, Jina Reader 283, Playwright MCP 198, browser-use 39, and `oc open` the only adapter that reported failure. It read the page for 1,556 tokens on 2026-08-24.
-- **video-page**: 688 for `oc open` against 345,487 raw and 378,496 for Playwright's rendered HTML. Playwright MCP's 502 and browser-use's 484 are the visible DOM only, which is the part of a watch page that does not carry the description or the caption links.
+- **video-page**: 688 for `oc open` against 363,516 raw and 398,541 for Playwright's rendered HTML. Playwright MCP's 502 and browser-use's 479 are the visible DOM only, which is the part of a watch page that does not carry the description or the caption links.
 - **aws-cli-ref**: 506 for `oc open` against 17,990 raw. The whole distilled page is 6,474 (`oc raw`), so the first view is the top slice of a document with a long tail behind it.
-- **gcloud-ref**: 492 for `oc open` against 133,363 raw, 46,382 for the whole distilled page, and 31,646 for Jina Reader.
-- **azure-cli-ref**: 471 for `oc open` against 100,140 raw and 137,312 for Selenium's rendered HTML.
-- **python-lib-ref**: 500 for `oc open` against 27,940 raw. The whole distilled page is 9,019, and Jina Reader (9,049) and lynx (10,330) land in the same band, so this page separates first-view tools from whole-page tools more than it separates readers.
-- **mdn-js-ref**: 484 for `oc open` against 44,614 raw. Jina Reader's 2,530 is its best showing on any documentation page here; MDN's markup is unusually clean under the chrome.
-- **node-api-ref**: 479 for `oc open` against 275,425 raw, 272,502 for Playwright MCP's accessibility snapshot, and 120,928 for lynx. Jina Reader failed it with a 503. Even the whole distilled page is 114,150 tokens, so this is a page to `find` and `read` through, never to hand over whole.
+- **gcloud-ref**: 492 for `oc open` against 138,030 raw, 46,342 for the whole distilled page, and 31,733 for Jina Reader.
+- **azure-cli-ref**: 471 for `oc open` against 100,140 raw and 154,590 for Selenium's rendered HTML.
+- **python-lib-ref**: 500 for `oc open` against 27,940 raw. The whole distilled page is 9,019, and Jina Reader (9,060) and lynx (10,330) land in the same band, so this page separates first-view tools from whole-page tools more than it separates readers.
+- **mdn-js-ref**: 484 for `oc open` against 44,577 raw. Jina Reader's 2,530 is its best showing on any documentation page here; MDN's markup is unusually clean under the chrome.
+- **node-api-ref**: 479 for `oc open` against 275,425 raw, 272,502 for Playwright MCP's accessibility snapshot, and 120,928 for lynx. Jina Reader read it this time, for 53,518, after a 503 on the previous run. Even the whole distilled page is 114,150 tokens, so this is a page to `find` and `read` through, never to hand over whole.
 
 The cloud reference first-view numbers are the clearest case in the suite for reading the answer column rather than the token column. **On none of the three pages does the first `oc open` view contain the flag the task asks for.** The page is far past the budget, so what prints is the opening slice plus a pointer to the rest, and the agent has to spend a second command. Measured on the same pages, `oc find` is the cheap way through: 314 tokens to land on `--recursive` in the AWS page (820 in total), 203 tokens to land on `--enable-hierarchical-namespace` in the Azure page (670 in total), and 84 tokens on the gcloud page. Reading those totals next to raw fetch's 17,990 and 133,363 is the honest comparison; reading 492 next to 133,363 is not.
 
@@ -76,11 +76,11 @@ Each task is an id, a `tier`, a starting URL, a goal phrased as a question, and 
 | `hn-top` | single page | news.ycombinator.com | the title of the #1 story |
 | `gh-search` | single page | GitHub search for terminal file managers | the first result and roughly its star count |
 | `stock-price` | single page | the Yahoo Finance AAPL quote page | the price at the most recent market close |
-| `reddit-thread` | single page | an old.reddit thread on terminal browsers | which browser commenters recommend most |
+| `reddit-thread` | single page | a Reddit thread on terminal browsers, as its Atom feed | which browser commenters recommend most |
 | `hn-comments` | multi step | news.ycombinator.com | open the #1 story's comment page, report the story and the top comment's point |
 | `gh-repo-detail` | multi step | the same GitHub search | open the first result's repository, report its license |
 | `ddg-follow` | multi step | a DuckDuckGo search for the Rust book | open the book on doc.rust-lang.org, report the first sentence of its introduction |
-| `reddit-top-comment` | multi step | old.reddit.com/r/ClaudeAI | open the top post's comments, report the post title and the top comment's point |
+| `reddit-top-comment` | multi step | www.reddit.com/r/ClaudeAI/.rss | open the first listed post's comments, report the post title and the top comment's point |
 | `youtube-watch` | single page | the same YouTube watch page as `video-page` | the video's title and roughly its view count |
 | `aws-s3-recursive` | single page | the `aws s3 cp` reference page | the flag that copies a directory, and the full command to upload a build directory |
 | `gcloud-instance-flags` | single page | the `gcloud compute instances create` reference page | the machine type and zone flags, and the full command for one named instance |

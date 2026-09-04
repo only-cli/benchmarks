@@ -23,11 +23,11 @@ AGENT_CLI=codex node agent-run.js --suite=docs    # any agent suite through code
 node agent-run.js --report-only                   # re-render tables from the saved JSON
 ```
 
-Node 20+, no dependencies. Results print as a markdown table and land in `results/`. Adapters whose tool is not installed announce themselves on stderr and drop out instead of failing the run.
+Node 20+, no dependencies. Results print as a markdown table and land in `results/`. Adapters whose tool is not installed announce themselves on stderr and drop out instead of failing the run. A task in `tasks.json` can carry `pauseMs` to space the adapters out; the two Reddit tasks wait a minute between tools, because Reddit meters anonymous feed readers tightly (a second request from the same client thirty seconds after the first came back 429 in testing) and a burst of eleven tools would measure the rate limit instead of the page. `node run.js --only=discussion,subreddit-front` reruns named tasks and merges them into the saved results.
 
 | variable | what it does |
 | --- | --- |
-| `OC_BIN` | which oc the page suite runs; defaults to a sibling checkout at `../only-cli`, or `OC_BIN="npx -y @only-cli/oc@0.5.1"` for the published package |
+| `OC_BIN` | which oc the page suite runs; defaults to a sibling checkout at `../only-cli`, or `OC_BIN="npx -y @only-cli/oc@0.5.3"` for the published package |
 | `AGENT_CLI` | `claude` (default) or `codex` |
 | `AGENT_MODEL` | rerun the same conditions on another model |
 | `LYNX_BIN` | where lynx lives if it is not on PATH |

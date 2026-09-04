@@ -11,8 +11,9 @@
   },
   {
     "id": "discussion",
-    "url": "https://old.reddit.com/r/linuxquestions/comments/xpznb1/best_terminal_web_browser/",
-    "goal": "extract a comment thread"
+    "url": "https://www.reddit.com/r/linuxquestions/comments/xpznb1/best_terminal_web_browser/.rss",
+    "goal": "extract a comment thread from its Atom feed",
+    "pauseMs": 60000
   },
   {
     "id": "search-results",
@@ -36,8 +37,9 @@
   },
   {
     "id": "subreddit-front",
-    "url": "https://old.reddit.com/r/ClaudeAI/",
-    "goal": "scan a subreddit front page"
+    "url": "https://www.reddit.com/r/ClaudeAI/.rss",
+    "goal": "scan a subreddit front page through its Atom feed",
+    "pauseMs": 60000
   },
   {
     "id": "video-page",
