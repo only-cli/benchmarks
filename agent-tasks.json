@@ -20,7 +20,7 @@
   {
     "id": "reddit-thread",
     "tier": "single page",
-    "url": "https://old.reddit.com/r/linuxquestions/comments/xpznb1/best_terminal_web_browser/",
+    "url": "https://www.reddit.com/r/linuxquestions/comments/xpznb1/best_terminal_web_browser/.rss",
     "goal": "Which terminal web browser do commenters in this thread recommend most?"
   },
   {
@@ -47,8 +47,8 @@
   {
     "id": "reddit-top-comment",
     "tier": "multi step",
-    "url": "https://old.reddit.com/r/ClaudeAI/",
-    "goal": "Starting from this subreddit's front page, open the top post's comments and report the post title and the point its top comment makes.",
+    "url": "https://www.reddit.com/r/ClaudeAI/.rss",
+    "goal": "Starting from this subreddit's feed, open the comments of the first post listed and report the post title and the point its top comment makes.",
     "maxTurns": 25
   },
   {

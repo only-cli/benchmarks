@@ -2,10 +2,10 @@
 
 Reproducible benchmarks for how AI agents read the web. The same live pages and the same tasks, read eleven ways, [oc](https://github.com/only-cli/oc) among them. Every suite asks one question: how many tokens does the agent have to ingest, how long does it take, and did it actually get the content?
 
-**Where things stand** (oc 0.5.1, September 2026, live sites):
+**Where things stand** (oc 0.5.1 to 0.5.3, September 2026, live sites):
 
-- **125x fewer tokens than raw HTML** across the twelve real pages both could read: 8,519 against 1,064,474. 15x fewer than Jina Reader, 59x fewer than Playwright MCP's accessibility snapshot.
-- **Real content on every page it could reach, and an honest failure on the two it could not.** Reddit now sends logged-out readers to a login wall, and every other tool returned that wall, or a 403 block page, as a success. Yahoo Finance refuses plain fetch outright and DuckDuckGo still blocks lynx; oc's Chrome impersonation read both.
+- **118x fewer tokens than raw HTML** across the fourteen real pages both could read: 9,466 against 1,119,003. 17x fewer than Jina Reader, 54x fewer than Playwright MCP's accessibility snapshot.
+- **Real content on all fifteen pages, Reddit included.** Reddit's pages now sit behind a login wall, so the suite reads its thread and subreddit through the Atom feeds that still answer anonymously: 459 and 493 tokens through oc against 10,452 and 21,155 for the feed XML, while the browser-based tools and Jina Reader got the block pages Reddit serves their fingerprints. Yahoo Finance refuses plain fetch outright and DuckDuckGo still blocks lynx; oc's Chrome impersonation read both.
 - **Half the cost of Claude Code's built-in WebSearch on Wikipedia lookups**: $0.23 against $0.45 for five questions, both 5/5 correct, on 25x less fresh input.
 - **21% cheaper than WebFetch and 34% cheaper than WebSearch** on eleven language docs lookups, at equal or better accuracy.
 - **10% cheaper than WebFetch and 49% cheaper than WebSearch** on twelve dependency lookups across GitHub, npm, PyPI, RubyGems, crates.io, Docker Hub, Stack Overflow and an RFC, 12/12 correct with no tuned shortcut for most of those sites. WebFetch was refused by npm and Stack Overflow.
@@ -23,11 +23,11 @@ AGENT_CLI=codex node agent-run.js --suite=docs    # any agent suite through code
 node agent-run.js --report-only                   # re-render tables from the saved JSON
 ```
 
-Node 20+, no dependencies. Results print as a markdown table and land in `results/`. Adapters whose tool is not installed announce themselves on stderr and drop out instead of failing the run.
+Node 20+, no dependencies. Results print as a markdown table and land in `results/`. Adapters whose tool is not installed announce themselves on stderr and drop out instead of failing the run. A task in `tasks.json` can carry `pauseMs` to space the adapters out; the two Reddit tasks wait a minute between tools, because Reddit meters anonymous feed readers tightly (a second request from the same client thirty seconds after the first came back 429 in testing) and a burst of eleven tools would measure the rate limit instead of the page. `node run.js --only=discussion,subreddit-front` reruns named tasks and merges them into the saved results.
 
 | variable | what it does |
 | --- | --- |
-| `OC_BIN` | which oc the page suite runs; defaults to a sibling checkout at `../only-cli`, or `OC_BIN="npx -y @only-cli/oc@0.5.1"` for the published package |
+| `OC_BIN` | which oc the page suite runs; defaults to a sibling checkout at `../only-cli`, or `OC_BIN="npx -y @only-cli/oc@0.5.3"` for the published package |
 | `AGENT_CLI` | `claude` (default) or `codex` |
 | `AGENT_MODEL` | rerun the same conditions on another model |
 | `LYNX_BIN` | where lynx lives if it is not on PATH |
@@ -57,40 +57,40 @@ Every task is documented in [TASKS.md](TASKS.md): what the page is, why it was c
 
 ### Page view: tokens per page, no model in the loop
 
-oc 0.5.1 from npm (`OC_BIN="npx -y @only-cli/oc@0.5.1"`, so oc's timing columns include npx startup on every call), Node 22, 2026-09-02. Fifteen live pages: a news front page, a Reddit thread, search results, a stock quote, cloud and language reference pages.
+oc 0.5.3 from npm (`OC_BIN="npx -y @only-cli/oc@0.5.3"`, so oc's timing columns include npx startup on every call), Node 22, 2026-09-04. Fifteen live pages: a news front page, a Reddit thread and a subreddit front page through their Atom feeds, search results, a stock quote, cloud and language reference pages. The two Reddit tasks were collected with a minute between tools, for reasons the second bullet explains.
 
 | adapter | success | total tokens | avg ms | avg fetch ms | total KB |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| oc-open | 13/15 | 8,971 | 1014 | 343 | 5498 |
-| oc-raw | 13/15 | 243,686 | 1115 | 355 | 5480 |
-| raw-fetch | 14/15 | 1,240,669 | 250 | 232 | 4848 |
-| jina-reader | 13/15 | 105,198 | 4606 | 2890 | 411 |
-| lynx-dump | 14/15 | 261,435 | 373 | 353 | 0 |
-| playwright-mcp | 15/15 | 531,303 | 806 | 806 | 0 |
-| browser-use | 15/15 | 28,096 | 3483 | 1505 | 0 |
-| playwright-html | 15/15 | 1,592,545 | 1075 | 552 | 6222 |
-| selenium-html | 15/15 | 1,489,893 | 2081 | 846 | 5821 |
-| claude-computer-use | 15/15 | 15,735 | 1059 | 550 | 1802 |
-| openai-computer-use | 15/15 | 11,475 | 0 | 550 | 1802 |
+| oc-open | 15/15 | 9,913 | 1296 | 435 | 5641 |
+| oc-raw | 15/15 | 259,068 | 1225 | 333 | 5625 |
+| raw-fetch | 14/15 | 1,119,003 | 280 | 274 | 4374 |
+| jina-reader | 14/15 | 145,679 | 5360 | 5733 | 571 |
+| lynx-dump | 14/15 | 293,136 | 430 | 413 | 0 |
+| playwright-mcp | 15/15 | 535,908 | 820 | 820 | 0 |
+| browser-use | 15/15 | 28,559 | 4860 | 1388 | 0 |
+| playwright-html | 15/15 | 1,552,996 | 1136 | 503 | 6068 |
+| selenium-html | 15/15 | 1,657,181 | 2200 | 712 | 6475 |
+| claude-computer-use | 15/15 | 15,735 | 1151 | 552 | 1703 |
+| openai-computer-use | 15/15 | 11,475 | 0 | 552 | 1703 |
 
-- **oc reads thirteen of fifteen pages for 8,971 tokens.** A page that fits in about four times the budget prints whole (the Hacker News front page lands at 1,065); everything larger renders near the 500 token budget however much the page weighs. The three cloud reference pages come in at 506, 492 and 471 tokens against 17,990 to 133,363 raw; the three language docs pages at 500, 484 and 479 against 27,940 to 275,425. The starkest single page is the YouTube watch page: 345,487 tokens raw, 688 through oc, about 500x. Node's `fs` reference is close behind at 275,425 raw against 479, a page even lynx needs 120,928 tokens for. On the twelve pages both tools read, raw HTML costs 125x what oc does: 1,064,474 against 8,519.
-- **Nobody read Reddit this time, and only oc said so.** old.reddit.com now answers a logged-out request with a redirect to its login page, and that login page is what nine adapters reported as a success: 88,184 tokens of it through raw fetch, 47,489 through Playwright and Selenium, a 50 token "Skip to main content" through lynx, and Jina's 295 token 403 block page ("whoa there, pardner!"). oc followed the same redirect, found no readable content, and exited non-zero naming the login URL, which is the one result an agent can act on. That is why its success column reads 13/15 under tools that read nothing and show 15/15. oc 0.5.0 gets the identical redirect, so this is a site change, not a release change.
-- **The rows near oc are floors, not reads.** The computer-use rows price one 1024x768 screenshot per page, a look at the top third before any scrolling and before any prompt or reasoning tokens, which is why the OpenAI row is nominally the smallest. Browser Use's state message carries indexed elements but drops most of the page text. Among tools that actually deliver the content, the gap is 15x to Jina Reader and 59x to Playwright MCP, and the rendered-HTML routes (Playwright, Selenium) cost slightly more than raw fetch plus a browser.
-- **Some failures are the site's.** Yahoo Finance now refuses a plain `fetch` connection outright, on every retry, where oc's Chrome identity reads the quote for 452 tokens, lynx for 9,039 and Playwright MCP for 24,333. Lynx was blocked on the DuckDuckGo search again, and Jina Reader failed LinkedIn (403) and the Node.js `fs` page (503). oc was the only distilling reader with real content on all thirteen pages a logged-out client can still reach.
+- **oc reads all fifteen pages for 9,913 tokens.** A page that fits in about four times the budget prints whole (the Hacker News front page lands at 1,121); everything larger renders near the 500 token budget however much the page weighs. The three cloud reference pages come in at 506, 492 and 471 tokens against 17,990 to 138,030 raw; the three language docs pages at 500, 484 and 479 against 27,940 to 275,425. The starkest single page is the YouTube watch page: 363,516 tokens raw, 688 through oc, about 530x. Node's `fs` reference is close behind at 275,425 raw against 479, a page even lynx needs 120,928 tokens for. On the fourteen pages both tools read, raw HTML costs 118x what oc does: 1,119,003 against 9,466.
+- **Reddit is back, through its feeds, and the feed is metered.** old.reddit.com still ends at a login wall, so both Reddit tasks now hand every tool the www.reddit.com Atom feed for the same thread and subreddit. oc reads the thread for 459 tokens and the subreddit for 493, against 10,452 and 21,155 for the feed XML itself, which is what raw fetch and lynx return verbatim. The feed has terms. Reddit refuses the Chrome fingerprint outright, so the Playwright browser's 207 and 185 are block snapshots, browser-use's 39 is a state message, and the rendered-HTML routes got the login page (47,489) or nothing (10); Jina Reader's 160 and 92 are Reddit turning its crawler away. Reddit also meters anonymous readers per client: with eight, fifteen and thirty seconds between tools, a second request from the same client came back 429 every time, and after a burst of manual probes one thirty-second pass refused oc's first request too. The rows above come from a pass with a minute between requests after fifteen minutes of quiet. Run the two tasks faster and you measure the limiter, which is why they carry `pauseMs`.
+- **The rows near oc are floors, not reads.** The computer-use rows price one 1024x768 screenshot per page, a look at the top third before any scrolling and before any prompt or reasoning tokens, which is why the OpenAI row is nominally the smallest. Browser Use's state message carries indexed elements but drops most of the page text. Among tools that actually deliver the content, the gap is 17x to Jina Reader and 54x to Playwright MCP, and the rendered-HTML routes (Playwright, Selenium) cost slightly more than raw fetch plus a browser.
+- **Some failures are the site's.** Yahoo Finance now refuses a plain `fetch` connection outright, on every retry, where oc's Chrome identity reads the quote for 447 tokens, lynx for 9,108 and Playwright MCP for 23,796. Lynx was blocked on the DuckDuckGo search again, and Jina Reader failed LinkedIn (403) and got block pages from Reddit; it did read the Node.js `fs` page this time, after a 503 on the previous run. oc was the only distilling reader with real content on all fifteen pages.
 
 ### Browse: whole tasks through Claude Code and Codex
 
-Single page tasks answer a question from one URL (Hacker News front page, a GitHub repository search, a Yahoo Finance quote, an old.reddit thread, a YouTube watch page, three cloud CLI reference pages). Multi step tasks start on one page and have to find and open a second (front page to the #1 story's comments, search results to the winning repository's license, DuckDuckGo to the Rust book, DuckDuckGo to an AWS reference page), which is where cost compounds: the first page is re-read on every turn that follows it. Each condition is locked to its one tool, with WebFetch and WebSearch disabled. The lynx condition ran lynx 2.9.0.
+Single page tasks answer a question from one URL (Hacker News front page, a GitHub repository search, a Yahoo Finance quote, a Reddit thread through its Atom feed, a YouTube watch page, three cloud CLI reference pages). Multi step tasks start on one page and have to find and open a second (front page to the #1 story's comments, search results to the winning repository's license, a subreddit feed to its first post's comments, DuckDuckGo to the Rust book, DuckDuckGo to an AWS reference page), which is where cost compounds: the first page is re-read on every turn that follows it. Each condition is locked to its one tool, with WebFetch and WebSearch disabled. The lynx condition ran lynx 2.9.0.
 
-**Claude Code, `claude-sonnet-5`, 2026-09-02, oc 0.5.1.** Thirteen tasks, sixty-five sessions.
+**Claude Code, `claude-sonnet-5`, 2026-09-02 on oc 0.5.1, the two Reddit tasks rerun on 2026-09-04 on oc 0.5.3 through the Atom feeds.** Thirteen tasks, sixty-five sessions.
 
 | tool | success | turns | output tokens | total tokens | total cost USD | avg s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| oc | 13/13 | 77 | 5,453 | 1,748,589 | 0.8135 | 12 |
-| raw-curl | 12/13 | 121 | 14,711 | 2,683,048 | 1.0352 | 24 |
-| lynx | 13/13 | 63 | 4,649 | 1,359,717 | 0.6964 | 10 |
-| jina-reader | 13/13 | 63 | 4,520 | 1,456,559 | 0.8783 | 13 |
-| playwright-mcp | 13/13 | 91 | 7,839 | 2,291,624 | 1.3114 | 15 |
+| oc | 12/13 | 97 | 5,049 | 1,626,242 | 0.8177 | 24 |
+| raw-curl | 11/13 | 129 | 10,493 | 2,186,422 | 0.9091 | 30 |
+| lynx | 12/13 | 89 | 8,182 | 1,837,815 | 0.8572 | 18 |
+| jina-reader | 13/13 | 74 | 7,509 | 1,762,289 | 0.9894 | 18 |
+| playwright-mcp | 13/13 | 91 | 7,819 | 2,290,981 | 1.3093 | 15 |
 
 **Codex, `gpt-5.6-sol` at xhigh, codex 0.148.0, 2026-08-24, oc 0.4.0.** Thirteen tasks, sixty-five sessions, not yet rerun on 0.5.1.
 
@@ -102,12 +102,13 @@ Single page tasks answer a question from one URL (Hacker News front page, a GitH
 | jina-reader | 13/13 | 59 | 6,321 | 1,016,427 | 29 |
 | playwright-mcp | 13/13 | 57 | 5,826 | 1,070,006 | 28 |
 
-- **Read the success column as "finished", not "read the page".** Under Claude, Reddit's new login wall took both Reddit tasks from all five tools, ten polite block reports. Beyond those, Jina Reader got Google's bot check on the YouTube page and read Yahoo's previous close as the close, Playwright MCP hit DuckDuckGo's CAPTCHA on both search tasks and skipped the hop by navigating straight to the destination, lynx could not see the YouTube view count, which the page renders with JavaScript, and raw curl failed the Yahoo quote outright after 13 turns and 320,984 tokens, then named a flag that does not exist (`--hierarchical-namespace`) on the Azure page. oc answered the eleven tasks a logged-out reader can still reach, with the real content each time. Priced per real answer: lynx 107,341 tokens, Jina Reader 122,561, oc 139,968, Playwright MCP 184,396, raw curl 191,631.
-- **lynx still takes the token and cost columns, and the gap is still almost one row.** On `gh-repo-detail` oc spends 111,634 tokens against lynx's 115,714, and across the four multi step tasks the two are within 4% (520,625 against 501,570). What remains is `azure-hns-flag`, where oc took 12 turns and 309,076 tokens against 4 turns and about 77,000 for every other tool. Without that row oc's total is 1,439,513 against lynx's 1,282,415.
+- **Read the success column as "finished", not "read the page".** Under Claude, oc and raw curl now read the Reddit thread from its feed and name w3m, in 4 and 10 turns. Jina Reader got the same feed back with every entry empty and the Playwright browser got a 403 block page, on both Reddit tasks, and each reported that as its answer, which the harness counts as finished. Beyond Reddit, Jina Reader got Google's bot check on the YouTube page and read Yahoo's previous close as the close, Playwright MCP hit DuckDuckGo's CAPTCHA on both search tasks and skipped the hop by navigating straight to the destination, lynx could not see the YouTube view count, which the page renders with JavaScript, and raw curl failed the Yahoo quote outright after 13 turns and 320,984 tokens, then named a flag that does not exist (`--hierarchical-namespace`) on the Azure page. oc answered twelve tasks with the real content each time and failed the thirteenth. Priced per answer with real content: Jina Reader 122,561 tokens, oc 135,520, lynx 153,151, Playwright MCP 184,396, raw curl 198,766.
+- **The multi step Reddit task is the one oc lost, and the fault is oc's.** The feed view names each post as a heading, and the link to the post is a per entry `open` anchor carrying the same label on all twenty-five entries, which the repeated-controls filter hides as chrome. So `oc do 1` on the first post read its heading instead of following it, the agent reopened the feed hunting for the link, and Reddit's meter answered the third fetch inside a minute with 429: 26 turns, 870,398 tokens, no answer. Raw curl saved the same feed to a scratch file and also ran out of turns. lynx got there in 22 turns by reading the post's own comments feed, and its answer is the honest one: the first post listed is a pinned index post by a moderator bot with no comments at all. The fix belongs in oc, not in the task: the entry title should be the link, so `do <n>` on a post follows it, and a reddit.com post URL should reach its feed rather than the login wall.
+- **lynx and oc are still within one row of each other.** On `gh-repo-detail` oc spends 111,634 tokens against lynx's 115,714, and across the four multi step tasks outside Reddit the two are within 6% (584,176 against 550,719). What remains is `azure-hns-flag`, where oc took 12 turns and 309,076 tokens against 4 turns and about 77,000 for every other tool. Without that row oc's successes total 1,317,166 against lynx's 1,760,513, which now carries lynx's 657,069-token Reddit walk; with every run counted, failures included, oc is at 2,496,640 and lynx at 2,171,002.
 - **That outlier is an oc bug, not an agent quirk, and 0.5.1 does not fix it.** On the `az storage account` reference, `oc find hierarchical` lists the flag at `[126]` and `[144]`, but `oc read` of either number returns an unrelated paragraph about account level immutability: the numbers `find` prints and the ones `read` takes do not line up on this page shape. The agent found the flag, read the wrong block, and hunted. It still answered correctly, because the `find` line itself shows the flag.
 - **Under Codex, thirteen out of thirteen is not what it looks like either.** Nothing errored, but nine of the sixty-five answers are a polite report that a site refused the tool: Reddit blocked curl, Jina Reader and the Playwright browser; DuckDuckGo showed curl, lynx and Playwright a bot challenge; Yahoo rate-limited curl. Counting only runs that returned real content: oc 13, lynx 12, Jina Reader 11, curl and Playwright MCP 10 each. lynx's 707,216 is the cheapest number in the table and includes a search task it never read.
 - **oc's spend has a different shape.** It took the most turns under Codex (68) because budgeted views make the agent navigate: `open`, then `find` or `do <n>`, each a small read. Its fresh input is the lowest in the run (232,681 tokens against 306,106 for Jina and 288,851 for curl), but at xhigh reasoning every extra turn re-reads the cached transcript and buys more reasoning, so its total lands mid-table. The tool that reads less per page pays in turns; the tools that dump whole pages pay in input. On this agent those roughly meet, and what separates the rows is the blocked tasks.
-- **Content nobody else gets, and content everybody lost.** Under Claude only oc, raw curl and the Playwright browser reported the YouTube view count, and the two Reddit tasks that only oc and lynx used to read are now behind a login wall for every tool. DuckDuckGo showed the Playwright browser a CAPTCHA on both search tasks under Claude and on `ddg-follow` under Codex. Raw curl spent 19 turns and 545,063 tokens on `reddit-top-comment` to report the wall, and again lost turns on four tasks to scratch HTML files it saved and then could not delete under the sandbox. Jina Reader is the only tool here that routes every URL the agent reads through a third party's servers, which is how a rate limit on Jina's service, not on the agent, cost it two GitHub tasks on the 2026-08-25 run.
+- **Content nobody else gets, and content everybody lost.** Under Claude only oc, raw curl and the Playwright browser reported the YouTube view count. The Reddit thread, lost to a login wall on the 2026-09-02 run, is back for oc and raw curl through its Atom feed, while Jina Reader and the Playwright browser still get Reddit's block pages there. DuckDuckGo showed the Playwright browser a CAPTCHA on both search tasks under Claude and on `ddg-follow` under Codex. Raw curl spent 26 turns and 770,176 tokens on `reddit-top-comment` without an answer, and again lost turns on four tasks to scratch HTML files it saved and then could not delete under the sandbox. Jina Reader is the only tool here that routes every URL the agent reads through a third party's servers, which is how a rate limit on Jina's service, not on the agent, cost it two GitHub tasks on the 2026-08-25 run.
 
 <details>
 <summary>Per-tier breakdown: what an extra hop costs</summary>
@@ -116,11 +117,11 @@ Claude Code, nine single page and four multi step tasks:
 
 | tool | single page tokens | single page turns | multi step tokens | multi step turns |
 | --- | ---: | ---: | ---: | ---: |
-| oc | 1,060,036 | 47 | 688,553 | 30 |
-| raw-curl | 1,393,558 (1 failed) | 60 | 1,610,474 | 61 |
-| lynx | 732,509 | 36 | 627,208 | 27 |
-| jina-reader | 671,926 | 33 | 784,633 | 30 |
-| playwright-mcp | 1,185,130 | 51 | 1,106,494 | 40 |
+| oc | 1,042,066 | 46 | 1,454,574 (1 failed) | 51 |
+| raw-curl | 1,441,995 (1 failed) | 61 | 1,835,587 (1 failed) | 68 |
+| lynx | 963,214 (1 failed) | 44 | 1,207,788 | 45 |
+| jina-reader | 869,575 | 40 | 892,714 | 34 |
+| playwright-mcp | 1,184,245 | 51 | 1,106,736 | 40 |
 
 Codex:
 
@@ -132,7 +133,7 @@ Codex:
 | jina-reader | 736,286 | 41 | 280,141 | 18 |
 | playwright-mcp | 637,801 | 35 | 432,205 | 22 |
 
-Every run counts here, failures included. Raw curl's one Claude failure (the Yahoo Finance quote) burned the full 13-turn budget and 320,984 tokens; the summary table above excludes failed runs from its token totals but counts their turns.
+Every run counts here, failures included. The two `reddit-top-comment` failures ran to the 25-turn cap (oc 870,398 tokens, raw curl 770,176), and lynx's `reddit-thread` failure and raw curl's Yahoo Finance failure burned the full 13-turn budget (333,187 and 320,984 tokens); the summary table above excludes failed runs from its token totals but counts their turns.
 
 </details>
 

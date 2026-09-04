@@ -18,13 +18,34 @@ if (await browserUseAvailable()) {
 } else {
   console.error('uvx not found, skipping browser-use, playwright-html, selenium-html, and computer-use (install uv)');
 }
-const tasks = JSON.parse(readFileSync(new URL('./tasks.json', import.meta.url), 'utf8'));
+const allTasks = JSON.parse(readFileSync(new URL('./tasks.json', import.meta.url), 'utf8'));
+
+// --only=id,id reruns just those tasks and merges them into the saved run, so
+// one page that hit a rate limit does not cost a fresh pass over all fifteen.
+const ONLY = (process.argv.find((a) => a.startsWith('--only='))?.slice('--only='.length) ?? '')
+  .split(',').filter(Boolean);
+const tasks = ONLY.length ? allTasks.filter((t) => ONLY.includes(t.id)) : allTasks;
+const saved = () => {
+  try {
+    return JSON.parse(readFileSync(new URL('./results/latest.json', import.meta.url), 'utf8'));
+  } catch {
+    return [];
+  }
+};
 
 const estimateTokens = (s) => Math.ceil(s.length / 4);
 
-const results = [];
+const results = ONLY.length ? saved().filter((r) => !ONLY.includes(r.task)) : [];
+// Some sites meter anonymous readers per IP (Reddit's feeds allow about ten
+// requests a minute). A task can set pauseMs to space the adapters out so the
+// suite measures the page and not its own burst.
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 for (const task of tasks) {
-  for (const adapter of ADAPTERS) {
+  for (const [i, adapter] of ADAPTERS.entries()) {
+    // Pause before every metered request, the task's first one included, so
+    // the previous task's burst has cleared before this one starts.
+    if (task.pauseMs && (i > 0 || results.length)) await sleep(task.pauseMs);
     const t0 = performance.now();
     try {
       const r = await adapter.run(task.url);
@@ -54,6 +75,13 @@ for (const task of tasks) {
     console.error(`${task.id} / ${adapter.name} done`);
   }
 }
+
+// Merged reruns land back in task order, then adapter order, so the table
+// reads the same however the rows were collected.
+const taskIndex = new Map(allTasks.map((t, i) => [t.id, i]));
+const adapterIndex = new Map(ADAPTERS.map((a, i) => [a.name, i]));
+results.sort((a, b) => (taskIndex.get(a.task) - taskIndex.get(b.task))
+  || ((adapterIndex.get(a.adapter) ?? 99) - (adapterIndex.get(b.adapter) ?? 99)));
 
 const lines = [];
 const out = (l) => { lines.push(l); console.log(l); };

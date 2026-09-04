@@ -14,7 +14,16 @@ const [cmd, ...baseArgs] = OC.split(' ');
 const METRICS = /HTTP (\d+) via ([^,]+), fetch (\d+)ms, process (\d+)ms, (\d+)KB transferred, (\d+)MB memory/;
 
 async function oc(args) {
-  const { stdout, stderr } = await exec(cmd, [...baseArgs, ...args, '-v'], { maxBuffer: 64 * 1024 * 1024 });
+  let stdout, stderr;
+  try {
+    ({ stdout, stderr } = await exec(cmd, [...baseArgs, ...args, '-v'], { maxBuffer: 64 * 1024 * 1024 }));
+  } catch (err) {
+    // oc exits non-zero with one line on stderr saying why (a 429, a login
+    // wall, no readable content). That line is the result worth recording,
+    // not the command that produced it.
+    const why = (err.stderr ?? '').trim().split('\n').filter((l) => l.startsWith('oc:')).pop();
+    throw new Error(why ?? err.message);
+  }
   const m = stderr.match(METRICS);
   return {
     output: stdout,
